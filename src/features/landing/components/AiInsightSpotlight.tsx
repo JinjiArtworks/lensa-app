@@ -13,11 +13,11 @@ export function AiInsightSpotlight() {
         <Reveal>
           <span className="text-[11.5px] font-bold uppercase tracking-wide text-accent-text">AI Insight</span>
           <h2 className="mt-3.5 font-display text-[28px] font-bold leading-tight tracking-tight md:text-[36px]">
-            AI yang menjelaskan performa iklan seperti partner bisnis — bukan analis data.
+            Laporan AI yang langsung kasih tau apa yang berubah dan apa yang harus kamu lakukan.
           </h2>
           <p className="mt-3.5 text-[15.5px] leading-relaxed text-ink-2">
-            Bukan sekadar dashboard angka. Setiap hari, Lensa merangkum apa yang berubah, kenapa itu penting buat
-            bisnismu, dan apa yang sebaiknya kamu lakukan lebih dulu.
+            Klik Sync, dan Lensa merangkum apa yang berubah dari data terbaru, kenapa itu penting buat bisnismu, dan
+            apa yang sebaiknya kamu lakukan lebih dulu.
           </p>
           <p className="mt-6 text-[13px] leading-relaxed text-ink-2">
             Contoh di samping ini adalah tampilan asli fitur AI Insight di dalam produk Lensa — bukan mockup

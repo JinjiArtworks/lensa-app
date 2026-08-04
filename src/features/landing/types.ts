@@ -12,23 +12,10 @@ export interface HowItWorksStep {
   desc: string;
 }
 
-export interface Testimonial {
-  quote: string;
-  stat: string;
-  name: string;
-  business: string;
-  avatarInitial: string;
-}
-
 export interface PricingRow {
   label: string;
   free: string;
   pro: string;
-}
-
-export interface FaqItem {
-  question: string;
-  answer: string;
 }
 
 export type HeroPlatformKey = "meta" | "tiktok";

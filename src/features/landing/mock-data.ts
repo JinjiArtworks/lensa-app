@@ -2,9 +2,7 @@ import { LayoutDashboard, Sparkles, Share2, RefreshCw } from "lucide-react";
 import type {
   LandingFeature,
   HowItWorksStep,
-  Testimonial,
   PricingRow,
-  FaqItem,
   HeroPlatformKey,
   HeroPlatformData,
   TrendMetricKey,
@@ -41,42 +39,15 @@ export const FEATURES: LandingFeature[] = [
 export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
   {
     title: "Hubungkan akun iklanmu",
-    desc: "Sambungkan Meta Ads dan TikTok Ads dalam kurang dari 2 menit, tanpa perlu bantuan developer.",
+    desc: "Sambungin Meta Ads dan TikTok Ads langsung dari halaman Connect Platform, tanpa ribet bolak-balik developer.",
   },
   {
     title: "Lensa satukan datanya",
-    desc: "Setiap metrik ditarik otomatis dan digabung secara real-time, jadi kamu nggak perlu rekap manual lagi.",
+    desc: "Semua metrik ditarik otomatis dan digabung real-time, jadi nggak ada lagi rekap manual tiap pagi.",
   },
   {
     title: "Dapat rekomendasi yang jelas",
-    desc: "AI Insight merangkum apa yang berubah dan apa yang sebaiknya kamu lakukan — bukan cuma angka mentah.",
-  },
-];
-
-export const TESTIMONIALS: Testimonial[] = [
-  {
-    quote:
-      "Dulu tiap pagi saya buka dua ads manager plus spreadsheet cuma buat tau performa kemarin gimana. Sekarang lima menit di Lensa, saya udah tau mana yang harus segera saya benerin.",
-    stat: "+18% closing dalam 2 minggu pertama",
-    name: "Sinta",
-    business: "Toko Baju Sinta · Fashion",
-    avatarInitial: "S",
-  },
-  {
-    quote:
-      "AI Insight-nya kerasa kayak dikasih saran sama orang yang ngerti bisnis saya — bukan cuma angka. Realokasi budget yang disaranin beneran naikin closing kita bulan itu juga.",
-    stat: "+22% ROAS di bulan pertama",
-    name: "Pak Budi",
-    business: "Dapur Bu Retno · F&B",
-    avatarInitial: "B",
-  },
-  {
-    quote:
-      "Tim saya cuma berdua, gantian pegang iklan. Copy as Report bikin serah terima ke partner jadi rapi tanpa perlu meeting panjang tiap minggu.",
-    stat: "~3 jam/minggu dihemat dari rekap manual",
-    name: "Nadia",
-    business: "Glowlab Skincare",
-    avatarInitial: "N",
+    desc: "AI Insight ngasih tau apa yang berubah dan langkah selanjutnya — bukan cuma angka mentah yang bikin bingung.",
   },
 ];
 
@@ -86,38 +57,6 @@ export const PRICING_ROWS: PricingRow[] = [
   { label: "AI Insight", free: "Dasar (kategori Positif)", pro: "Penuh + export laporan" },
   { label: "Anggota tim", free: "1 pengguna", pro: "Undang tim (Admin/Viewer)" },
   { label: "Histori data", free: "7 hari", pro: "Tanpa batas" },
-];
-
-export const FAQ_ITEMS: FaqItem[] = [
-  {
-    question: "Apakah data toko saya aman?",
-    answer:
-      "Aman. Lensa hanya membaca data performa lewat akses resmi API Meta dan TikTok — bukan password akun kamu. Akses ini bisa kamu cabut kapan saja lewat pengaturan.",
-  },
-  {
-    question: "Apakah proses connect akun Meta/TikTok Ads ribet?",
-    answer:
-      'Nggak. Dari halaman Connect Platform, klik "Hubungkan" lalu login lewat halaman resmi Meta/TikTok. Prosesnya sekitar 2 menit, tanpa bantuan developer.',
-  },
-  {
-    question: "Paket Free-nya beneran gratis selamanya?",
-    answer:
-      "Betul. Free bisa kamu pakai selama yang kamu mau, untuk 1 bisnis dan 1 platform. Nggak ada trial otomatis yang tiba-tiba menagih kartu kamu.",
-  },
-  {
-    question: "Bagaimana kalau saya beriklan di platform selain Meta/TikTok?",
-    answer:
-      "Saat ini Lensa fokus dulu di Meta Ads dan TikTok Ads, karena ini kombinasi yang paling umum dipakai bisnis kecil-menengah di Indonesia. Platform lain ada di rencana pengembangan berikutnya.",
-  },
-  {
-    question: "Bisa upgrade atau downgrade kapan saja?",
-    answer:
-      "Bisa. Upgrade ke Pro langsung aktif saat itu juga, sedangkan downgrade ke Free berlaku di periode tagihan berikutnya, tanpa penalti.",
-  },
-  {
-    question: "Apakah saya perlu kartu kredit buat mencoba?",
-    answer: "Nggak perlu. Paket Free bisa langsung kamu pakai tanpa kartu kredit sama sekali.",
-  },
 ];
 
 export const HERO_PLATFORM_DATA: Record<HeroPlatformKey, HeroPlatformData> = {

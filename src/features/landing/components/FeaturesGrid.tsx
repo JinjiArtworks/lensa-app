@@ -4,16 +4,16 @@ import { FEATURES } from "../mock-data";
 
 export function FeaturesGrid() {
   return (
-    <section id="fitur" className="scroll-mt-20 border-y border-line bg-card py-16 md:py-[92px]">
+    <section id="fitur" className="scroll-mt-20 border-b border-line bg-card py-16 md:py-[92px]">
       <div className="mx-auto max-w-[1100px] px-5">
         <Reveal className="mx-auto mb-[52px] max-w-[620px] text-center">
           <span className="text-[11.5px] font-bold uppercase tracking-wide text-accent-text">Fitur Utama</span>
           <h2 className="mt-3.5 font-display text-[28px] font-bold tracking-tight md:text-[36px]">
-            Dirancang buat pemilik bisnis, bukan buat analis data.
+            Lihat angkanya, langsung tau harus ngapain.
           </h2>
           <p className="mt-3.5 text-[15.5px] leading-relaxed text-ink-2">
-            Setiap fitur dibuat biar kamu bisa ambil keputusan lebih cepat — tanpa perlu belajar istilah marketing
-            dulu.
+            Nggak perlu ngerti istilah marketing buat pake Lensa. Semua fitur dibuat biar kamu bisa langsung ambil
+            keputusan.
           </p>
         </Reveal>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

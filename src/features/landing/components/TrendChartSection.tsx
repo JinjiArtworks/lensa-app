@@ -83,7 +83,7 @@ export function TrendChartSection() {
           </div>
 
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={metric.data}>
+            <AreaChart data={metric.data} margin={{ left: 24, right: 24 }}>
               <XAxis
                 dataKey="week"
                 tickFormatter={(w) => `Minggu ${w}`}

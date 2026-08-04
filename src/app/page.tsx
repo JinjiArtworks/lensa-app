@@ -9,11 +9,8 @@ import { Hero } from "@/features/landing/components/Hero";
 import { ProblemSection } from "@/features/landing/components/ProblemSection";
 import { HowItWorks } from "@/features/landing/components/HowItWorks";
 import { FeaturesGrid } from "@/features/landing/components/FeaturesGrid";
-import { FaqSection } from "@/features/landing/components/FaqSection";
 import { AiInsightSpotlight } from "@/features/landing/components/AiInsightSpotlight";
-import { StatsSection } from "@/features/landing/components/StatsSection";
 import { TrendChartSection } from "@/features/landing/components/TrendChartSection";
-import { TestimonialsSection } from "@/features/landing/components/TestimonialsSection";
 import { PricingSection } from "@/features/landing/components/PricingSection";
 import { CheckoutModal } from "@/features/landing/components/CheckoutModal";
 import { Reveal } from "@/features/landing/components/Reveal";
@@ -29,7 +26,7 @@ export default function LandingPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   return (
-    <div className={bricolage.variable}>
+    <div className={`${bricolage.variable} landing-grid-bg`}>
       <Nav />
 
       <main>
@@ -37,11 +34,8 @@ export default function LandingPage() {
         <ProblemSection />
         <HowItWorks />
         <FeaturesGrid />
-        <FaqSection />
         <AiInsightSpotlight />
-        <StatsSection />
         <TrendChartSection />
-        <TestimonialsSection />
         <PricingSection onOpenCheckout={() => setCheckoutOpen(true)} />
 
         <section className="px-5 py-16 text-center md:py-[92px]">
@@ -62,7 +56,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-line px-5 py-[60px]">
+      <footer className="border-t border-line bg-white px-5 py-[60px]">
         <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
@@ -79,7 +73,6 @@ export default function LandingPage() {
             {[
               { href: "#cara-kerja", label: "Cara Kerja" },
               { href: "#fitur", label: "Fitur" },
-              { href: "#faq", label: "FAQ" },
               { href: "#harga", label: "Harga" },
             ].map((l) => (
               <a key={l.href} href={l.href} className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">

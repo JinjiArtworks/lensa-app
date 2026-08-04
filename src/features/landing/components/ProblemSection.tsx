@@ -31,7 +31,7 @@ function FocusCard({ className }: { className?: string }) {
 
 export function ProblemSection() {
   return (
-    <section className="border-y border-line bg-card py-16 md:py-[92px]">
+    <section className="bg-card py-16 md:py-[92px]">
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-10 px-5 md:grid-cols-2">
         <Reveal>
           <span className="inline-flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-wide text-accent-text before:h-px before:w-3.5 before:bg-accent">

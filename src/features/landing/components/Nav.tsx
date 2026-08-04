@@ -11,7 +11,6 @@ import { BrandMark } from "./BrandMark";
 const NAV_LINKS = [
   { href: "#cara-kerja", label: "Cara Kerja" },
   { href: "#fitur", label: "Fitur" },
-  { href: "#faq", label: "FAQ" },
   { href: "#harga", label: "Harga" },
 ];
 

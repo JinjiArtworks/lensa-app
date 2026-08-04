@@ -4,7 +4,7 @@ import { HeroMockup } from "./HeroMockup";
 
 export function Hero() {
   return (
-    <section className="overflow-hidden py-16 md:py-24">
+    <section className="overflow-hidden bg-white py-16 md:py-24">
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-10 px-5 md:grid-cols-2 md:gap-14">
         <div>
           <span className="inline-flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-wide text-accent-text before:h-px before:w-3.5 before:bg-accent">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/client";
@@ -133,9 +134,9 @@ export default function SignUpPage() {
         </button>
         <div className="mt-4 text-xs text-ink-3">
           Sudah punya akun?{" "}
-          <a href="/sign-in" className="font-bold text-ink">
+          <Link href="/sign-in" className="font-bold text-ink">
             Masuk
-          </a>
+          </Link>
         </div>
       </form>
     </div>

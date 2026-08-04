@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -171,9 +172,9 @@ export default function SignInPage() {
         </button>
         <div className="mt-4 text-xs text-ink-3">
           Belum punya akun?{" "}
-          <a href="/sign-up" className="font-bold text-ink">
+          <Link href="/sign-up" className="font-bold text-ink">
             Daftar
-          </a>{" "}
+          </Link>{" "}
           ·{" "}
           <button type="button" onClick={() => setMode("forgot-password")} className="font-bold text-ink underline">
             Lupa password?
