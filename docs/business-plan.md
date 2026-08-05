@@ -61,7 +61,7 @@
 | 10 | **Empty State / First-time Experience** | Onboarding list sebelum ada platform yang di-connect |
 | 11 | **Billing / Paket Page** | Sub-tab "Paket Tersedia" di dalam Billing (bukan nav terpisah "Pricing"), mockup Free vs Pro + simulasi "Perpanjang Sekarang" (payment-gateway-style modal, tetap non-fungsional) |
 
-**Urutan build:** Dashboard layout + 1 platform view (paling polished) → AI Insight panel → infra (monorepo/Firebase) woven throughout → docs/standards hub di akhir.
+**Urutan build:** Dashboard layout + 1 platform view (paling polished) → AI Insight panel → infra (Firebase) woven throughout → docs/standards hub di akhir.
 
 ---
 
@@ -84,7 +84,7 @@
 
 - **Kenapa Next.js, bukan Vite SPA murni:** Lensa punya sisi public-facing (landing + pricing page) yang idealnya SSR/SEO-friendly untuk akuisisi organik business owner — beda dari BDD.ai Client Service yang full internal/authenticated (makanya Vite cukup di sana). Next.js App Router juga kasih server actions sebagai BFF layer di depan Firebase Admin SDK (secret tetap di server). Next.js juga stack harian yang sudah dikuasai, jadi build velocity lebih tinggi dalam window waktu assessment.
 - **Stack FE:** Next.js 14 App Router + TS strict, Tailwind + **shadcn/ui**, Zustand (minim store: `ui` + `auth`), TanStack Query (server state), Zod (validasi), **Recharts** (basis shadcn charts, visual konsisten), Framer Motion, Firebase (Auth/Firestore/Hosting).
-- **Infra:** Monorepo + Firebase (ringan, sesuai prinsip "pilih profile paling kecil yang cukup" dari `02-deployment-policy`).
+- **Infra:** Single Next.js app repo + Firebase (Auth/Firestore/Hosting) sebagai backend terkelola — ringan, sesuai prinsip "pilih profile paling kecil yang cukup" dari `02-deployment-policy`. *(Draf awal sempat nyebut "monorepo" — nggak pernah kejadian secara struktural karena cuma 1 app, bukan beberapa package/workspace yang dikelola bareng. Dikoreksi 2026-08-05, lihat `PROGRESS.md`.)*
 - **Standar yang diadopsi:** `00-engineering-standard` (golden rules fondasi) + `31-frontend-nextjs` (konvensi FE, sesuai stack Next.js).
 - **Standar yang diambil prinsipnya saja (tidak literal):** `02-deployment-policy` — outcome thinking (D1 secret via env config, D7 observability via Sentry) tanpa infra K8s/GitOps penuh.
 - **Di luar scope:** `40/41/42` (K8s-specific), `01-ecosystem-governance` (governance multi-project), `04-collaboration-sync` (multi-device/agent protocol), `20-scheduler`.
