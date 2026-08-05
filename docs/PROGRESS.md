@@ -1,0 +1,200 @@
+# Lensa — Progress Hub
+
+> Satu-satunya tempat buat cek "kita udah sampe mana". Update file ini tiap kali sebuah plan file selesai dieksekusi (semua task-nya approved). Kalau resume kerjaan di sesi baru / abis context reset, baca file ini duluan sebelum baca apapun lain.
+
+**Last updated:** 2026-08-05 (sesi keduabelas — polish landing page + `CLAUDE.md` baru + full-migrasi Campaign/Creative/Trend chart jadi per-bisnis, closing gap terakhir Part B)
+
+## ⚠️ Kalau resume di sesi baru, mulai dari sini
+
+**🎉 Semua 6 slice UI Phase 1 kelar + AI Insight (Phase 2) kelar + landing page (`/`) full redesign + 4 key feature dashboard diperkuat + Part A (Auth+Firestore) & Part B (ads metrics API layer) wiring logic kelar + 2 halaman legal baru:** Overview (1), Sign In + Onboarding (2), Detail Platform (3), Billing (4), Settings (5), Connect Platform (6), AI Insight (+ Benchmark Industri & Rekomendasi Alokasi Budget), Landing page baru (+ `/ketentuan-layanan`, `/kebijakan-privasi`), Sign Up baru, Auth+Firestore beneran, ads metrics beneran per-bisnis via Route Handler — semua terverifikasi manual (`tsc` bersih, `next build` sukses, semua route ke-generate, smoke test curl ke `/api/platform-metrics` + halaman publik termasuk 2 halaman legal baru). **Catatan: automated test suite (36 file, 97 test) dihapus di sesi kesebelas** atas keputusan user — lihat entry di bawah & `decisions-log.md` §6.1. Verifikasi sekarang `tsc`+`build`+manual testing, bukan test suite lagi. Sesi keduabelas sudah **di-commit (`1329a5a`) dan di-push ke `origin/main`**.
+
+**Sesi keduabelas (2026-08-05) — polish landing page (mobile nav dropdown, footer layout) + 2 halaman legal baru, dikerjain langsung tanpa plan file (ad-hoc fix atas permintaan user, bukan dari checklist manapun):**
+- **Nav mobile dropdown transparan/blur:** panel menu burger di mobile sebelumnya nggak punya background sendiri — ikut `bg-card/90 backdrop-blur` milik `<header>`, jadi daftar link keliatan transparan/blur nembus konten di belakangnya. Fix: `Nav.tsx` panel dropdown sekarang punya `bg-card` solid + `shadow-lg` sendiri, independen dari header.
+- **Footer layout mobile:** awalnya `grid-cols-1` (1 kolom stack, rata kiri). Sempat dicoba versi centered (`items-center text-center`) tapi ditolak user (lihat screenshot di percakapan) — maunya tetap rata kiri-kanan macam footer pada umumnya, bukan ditumpuk center. Settle di `grid-cols-2` khusus mobile: blok brand+deskripsi `col-span-2` (full width di atas), 3 kolom link (Produk/Perusahaan/Legal) sejajar 2 kolom di bawahnya, semua tetap `text-left` per kolom. `md:` ke atas tetap grid 4-kolom asli, tidak berubah.
+- **Teks deskripsi footer kepotong sempit di mobile** — `max-w-[240px]` yang tadinya berlaku di semua breakpoint sekarang cuma aktif di `md:+`; di mobile teks wrap penuh selebar kolom.
+- **Footer di-extract jadi komponen shared** `features/landing/components/Footer.tsx`, dipakai landing page & 2 halaman legal baru — link "Legal" (`Ketentuan Layanan`/`Kebijakan Privasi`) sekarang `next/link` ke route asli, ganti placeholder `href="#top"`.
+- **2 halaman baru:** `/ketentuan-layanan` & `/kebijakan-privasi`, pakai layout shared baru `features/landing/components/LegalPageLayout.tsx` (+ `LegalSection`). **Isi masih placeholder generik** (belum direview legal/lawyer) — dicatat biar nggak lupa sebelum production beneran.
+- **Bug ketemu & difix:** link nav "Cara Kerja"/"Fitur"/"Harga" pakai href relatif (`#cara-kerja`) di-render `<a>` biasa — normal di `/`, tapi diklik dari halaman lain (misal `/ketentuan-layanan`) hasilnya jadi `ketentuan-layanan#cara-kerja` (nggak balik ke home). Fix: href diabsolutkan (`/#cara-kerja`) + ganti ke `next/link` `Link` (desktop nav & mobile dropdown) — sekarang diklik dari halaman manapun, balik ke `/` dulu baru scroll ke section yang benar.
+- Verifikasi: manual — `tsc --noEmit` bersih, `eslint` bersih di semua file yang disentuh, smoke test `curl` ke `/`, `/ketentuan-layanan`, `/kebijakan-privasi` (semua 200). Nggak ada test otomatis ditambah (konsisten sama keputusan sesi kesebelas yang udah hapus test suite, `decisions-log.md` §6.1).
+- **Di-commit & di-push:** commit `1329a5a` ("Fix mobile nav/footer layout, add legal pages"), `git push origin main` sukses. **Standing instruction baru dari user (2026-08-05): tiap task selesai → commit + push + update `PROGRESS.md`, bukan nunggu diminta tiap kali.**
+- **`CLAUDE.md` baru ditambah di root `lensa-app/`** (belum pernah ada sebelumnya) — ringkasan stack/command/konvensi folder/gotchas langsung di repo, plus pointer eksplisit ke `../` (`PROGRESS.md`, `business-plan.md`, `decisions-log.md`, spek fitur) buat konteks penuh yang saat ini masih hidup di luar repo. Juga eksplisit nulis ulang 2 standing instruction sesi ini (commit+push+update hub tanpa diminta, no Claude attribution di commit message) biar persist walau di luar sesi chat. Commit `9b1de27`, sudah di-push.
+
+**Lanjut sesi keduabelas — full-migrasi Campaign table, Creative list, dan Trend chart jadi per-bisnis (nutup gap yang sengaja dicatat "belum di-fix" di sesi kesebelas Part B):**
+- **Kenapa:** ditanya balik ke user (via pertanyaan pilihan) sebelum lanjut ke dashboard — dipilih opsi "full-migrasi sisa mock data" dibanding Firestore security rules atau task lain. Sebelum ini, `CAMPAIGNS`/`CREATIVES`/`TREND_DATA` (Overview) & `PLATFORM_TREND` (Detail Platform) masih 1 dataset statis global — Business Switcher nggak ngefek ke tabel campaign/creative/trend chart, cuma ke angka KPI.
+- **`lib/seed.ts`** — 4 fungsi seed baru (`seededVariance` primitif + `seededCampaigns`, `seededCreatives`, `seededTrendSeries`, `seededPlatformTrendSeries`), pola sama kayak `seededPlatformRaw`: katalog/nama/status tetap sama tiap bisnis, cuma angka performa (spend/CTR/conv) yang di-vary per businessId. Trend series di-scale pakai **1 faktor seragam buat seluruh series** (bukan per-titik) biar bentuk kurvanya tetap koheren, bukan jadi bergerigi.
+- **Baseline data (`BASE_CAMPAIGNS`/`BASE_CREATIVES`/`BASE_TREND_DATA`/`BASE_PLATFORM_TREND`) dipindah ke `app/api/platform-metrics/route.ts`** — nggak lagi diserve langsung ke client, sama prinsip kayak `BASE_PLATFORM_RAW` yang udah ada. Route Handler sekarang return `campaigns`/`creatives`/`trend`/`platformTrend` sekalian dalam 1 response yang sama (nggak nambah round-trip network baru).
+- **5 komponen diubah dari static-import jadi terima props:** `CampaignTable`, `CampaignDetailModal`, `TrendChart` (Overview), `PlatformCampaignTable`, `PlatformTrendChart` (Detail Platform) — plus `overview/page.tsx` & `detail/page.tsx` di-update buat pass `data.CAMPAIGNS`/`data.CREATIVES`/`data.TREND_DATA`/`data.PLATFORM_TREND` dari `useOverviewData()` yang udah ada.
+- Verifikasi: `tsc --noEmit` bersih, `eslint` bersih, `next build` sukses (14 route). Smoke test curl `/api/platform-metrics?businessId=X` dengan 2 businessId berbeda → campaign/trend numbers beda; businessId sama dipanggil ulang → angka konsisten (deterministik). Halaman publik + dashboard semua 200.
+- **Sekarang semua data dashboard (KPI, Campaign table, Creative list, Trend chart) udah scoped per-bisnis** — Business Switcher ngefek ke semuanya, nggak cuma KPI lagi. Ini menutup catatan "belum di-fix" yang tersisa dari Part B sesi kesebelas.
+- Di-commit (`d7b2379`, "Scope Campaign table, Creative list, and Trend charts per business") dan di-push ke `origin/main`.
+
+**Sesi kesebelas (2026-08-04) — wiring logic beneran Part A: Firebase Auth + Firestore, 8 task dari `plan-2026-08-04-data-layer-wiring.md`, dieksekusi inline (TDD ketat tiap task):**
+- **Kenapa sekarang:** user mikirin gimana jawab keterbatasan "gak bisa akses API real TikTok/Meta buat assessment" — brainstorm → spec baru `09-data-layer-wiring.md` (3 kelas data: real API/Firebase, simulasi-via-API-layer, full mock) → plan eksekusi `plan-2026-08-04-data-layer-wiring.md` (Part A doang, Part B/route-handler-mock-ads-data didefer jadi plan terpisah) → `decisions-log.md` baru dibikin (catatan keputusan teknis per-topik buat bahan presentasi, terpisah dari `PROGRESS.md` yang kronologis).
+- **Task 1-3 (foundation):** `getFirestoreDb()` + shared types (`UserProfileDoc`/`BusinessDoc`) di `lib/firebase/`, `mapFirebaseAuthError()` (map error code Firebase ke pesan Indonesia ramah), `features/auth/firestore.ts` (`createUserProfile`, `createDefaultBusiness`).
+- **Task 4 — Sign Up (halaman baru, sebelumnya sama sekali gak ada):** form nama/email/password/konfirmasi (Zod), `createUserWithEmailAndPassword` → Firestore user+business doc → `setActiveBusinessId` → redirect `/onboarding`.
+- **Task 5 — Sign In (full replace dari mock):** sebelumnya `defaultValue` hardcoded + `setTimeout` palsu, sekarang `signInWithEmailAndPassword` beneran + query Firestore business milik user buat redirect logic (`/overview` kalau udah ada platform connected, `/onboarding` kalau belum) + mode "Lupa password?" (`sendPasswordResetEmail`).
+- **Task 6 — `AuthGuard`:** proteksi client-side buat `(dashboard)/layout.tsx` (belum login → redirect `/sign-in`), plus sign-in/sign-up redirect balik ke `/overview` kalau udah login. Keputusan sadar: client-side guard doang, bukan middleware+Admin SDK (dicatat di `decisions-log.md` §2.3, dianggap overbuild buat scope assessment).
+- **Task 7 — Business Switcher dari Firestore:** ganti `MOCK_BUSINESSES` array statis jadi `useBusinesses`/`useAddBusiness` (TanStack Query + Firestore query/mutation beneran).
+- **Task 8 — Connect Platform persist Firestore:** animasi "connecting..." di onboarding tetep simulasi (gak ada OAuth asli), tapi hasil connect-nya (`connectedPlatforms` array) sekarang ke-Firestore beneran, survive refresh — sebelumnya cuma `useState` lokal yang hilang pas reload.
+- **Gap ditemukan pas kerja:** `Sidebar.test.tsx` sempet break karena render `BusinessSwitcher` yang sekarang butuh Firestore hook mock (fix: tambah `vi.mock` di test itu). Juga ditemukan (dicatat di `decisions-log.md` §3.4, belum di-fix — itu scope Part B): Business Switcher yang sekarang real belum ngefek ke angka KPI Overview/Detail Platform, karena `PLATFORM_RAW` masih 1 dataset statis global, belum di-scope per `businessId`.
+- **Belum bisa smoke-test manual beneran** — butuh 1 project Firebase asli + `.env.local` terisi (developer harus provision sendiri, agent gak bisa). Semua verifikasi sejauh ini dari test yang mock Firebase SDK (`vi.mock`), bukan network call asli.
+- Eksekusi: dikerjain langsung/inline (subagent-driven-development sempet dicoba tapi dispatch subagent ditolak user, lanjut manual per-task tetep ikutin TDD ketat dari plan). Kerja langsung di `main` (user pilih skip worktree isolation).
+- Verifikasi: 78→97 test (19 baru: providers 2, firestore 2, sign-up 4, sign-in 4, AuthGuard 3, BusinessSwitcher 4, onboarding 0-net-new-tapi-diganti), `tsc --noEmit` bersih, `next build` sukses (11 route, `/sign-up` baru).
+- **Setelah itu, di sesi yang sama: semua 36 file test (97 test) dihapus atas keputusan user** — dianggap di luar scope assessment, cukup manual testing. Folder `__tests__` kosong ikut dihapus. Test infra (vitest config, `testing-library`/`vitest` deps, `src/test/setup.ts`, `npm test` script) sengaja dibiarin — gampang ditulis ulang kalau nanti berubah pikiran. `tsc --noEmit` + `next build` diverifikasi tetep bersih setelah penghapusan. Keputusan & alasan dicatat di `decisions-log.md` §6.1.
+
+**Lanjut sesi kesebelas — Part B: ads metrics & AI insight live-anomaly via Route Handler, di-scope per `businessId` (7 task, dikerjain inline tanpa test per keputusan di atas):**
+- **Kenapa & scope:** jawaban buat gap yang ditemukan pas Part A — Business Switcher yang udah Firestore-backed ternyata nggak ngefek ke angka KPI Overview/Detail (`PLATFORM_RAW` masih 1 dataset statis global). Full migrasi semua mock data (Campaign table, Creative list, Trend chart) dianggap kegedean buat 1 sesi — user pilih **slice fokus**: cuma KPI/PLATFORM_RAW (Overview+Detail) + AI Insight live-anomaly card. `CAMPAIGNS`/`CREATIVES`/`TREND_DATA` tetap mock statis (didokumentasikan sengaja).
+- **`lib/seed.ts`** — PRNG deterministik (mulberry32) seeded dari `businessId`, bisnis yang sama selalu dapet angka yang sama, bisnis beda dapet angka beda (±25% variance dari baseline hand-tuned).
+- **`lib/kpi.ts`** — `computeDelta()` baru: delta "▲ 8% vs periode lalu" sekarang dihitung beneran dari current-vs-previous (previous juga di-seed terpisah), bukan hand-authored string kayak sebelumnya.
+- **`app/api/platform-metrics/route.ts`** — Route Handler baru, `GET ?businessId=X` return `{meta,tiktok}: {current,previous}`, delay simulasi 300-800ms, error-rate wired tapi off by default (demo perlu happy path reliable).
+- **`mock-data.ts` refactor besar** — `PLATFORM_RAW`/`PLATFORMS`/`KPI_ROW_1`/`KPI_ROW_2`/`CHANNEL_CHART_DATA`/`ACTUALS` bukan lagi const statis, jadi `derivePlatformsData()` (pure function). `PLATFORM_LABELS` baru (nama/icon statis, dipisah dari data — banyak komponen ternyata cuma butuh ini, bukan metrics beneran).
+- **`use-overview-data.ts`** — hook TanStack Query (`useOverviewData(businessId)`), dipake bareng oleh Overview, Detail Platform, dan AI Insight (React Query dedupe otomatis, gak ada duplicate fetch).
+- **Overview & Detail Platform page** jadi pemilik query, komponen anak (`KpiGrid`, `ChannelChart`, `TargetTracker`, `ProactiveAlertCard`, `PlatformKpiGrid`) diubah dari "import data sendiri" jadi terima props — loading/error state di-handle 1 tempat per halaman, bukan duplikasi di tiap komponen.
+- **AI Insight live-anomaly** (`insight-matcher.ts`) — `buildLiveAnomalyItem`/`getInsightsForPeriod` sekarang terima `platforms` sebagai parameter (bukan import statis), fallback ke item statis kalau data belum resolve (halaman insight nggak perlu full loading gate). Landing page (`AiInsightSpotlight`) pass `undefined` — publik, gak ada bisnis aktif, selalu nampilin demo statis.
+- **"Sync & Analisis Ulang"** sekarang `queryClient.invalidateQueries(["platform-metrics", businessId])` beneran (bukan cuma timer lokal) — matching logic AI insight-nya sendiri tetap deterministik/template-based (bukan live AI generation, sesuai `business-plan.md` §9), cuma data platform yang jadi input-nya sekarang refetch asli.
+- **Keputusan scope-narrowing dari spec asli:** spec `09-data-layer-wiring.md` §B nyebut AI Insight logic "dibungkus jadi endpoint/Server Action sendiri" — di eksekusi ini nggak dibikin endpoint kedua terpisah, karena matching logic-nya pure/instant client-side, gak ada alasan pindah ke server selain ceremony. Endpoint yang beneran berarti (`platform-metrics`) tetap ada; AI insight "sync"-nya invalidate query itu.
+- Verifikasi: manual — `tsc --noEmit` bersih, `next build` sukses (12 route, `/api/platform-metrics` muncul sebagai dynamic route ƒ), smoke test `curl` ke endpoint (beda `businessId` → beda angka, `businessId` sama → angka konsisten, param kosong → 400) + halaman publik (`/`, `/sign-in`, `/sign-up` → 200).
+- Keputusan lengkap dicatat di `decisions-log.md` §3.5-3.6 (kalau ditambah) & entry ini.
+- **Belum di-push ke remote** — sama kayak sesi sebelumnya, semua masih commit lokal di `main`.
+
+**Sesi kesepuluh (2026-08-03) — polish landing page (brand mark, mobile-first, nav scroll-spy) + 4 fitur utama di dashboard beneran ditingkatkan:**
+- **Landing page:** Nav/footer pakai `BrandMark` (2 lingkaran overlap dari artifact) ganti placeholder "L". `ProblemSection` ternyata nge-`hidden md:block` payoff card-nya di mobile — dibenerin jadi ada 2 varian (stacked flow selalu visible di mobile, scattered art cuma di `md:+`). `PricingSection` ganti dari `<table>` (force horizontal scroll di HP) jadi 2 card yang stack di mobile. Nav sekarang urutannya ngikutin urutan section di halaman (Cara Kerja→Fitur→FAQ→Harga, sebelumnya lompat-lompat) + ada active indicator (scroll-spy pakai `IntersectionObserver`). Footer bar bawah (copyright/tech-stack) dihapus atas permintaan user.
+- **Dashboard — 4 fitur yang di landing page diklaim "key feature" ternyata ada gap nyata pas dicek di dashboard beneran:**
+  1. *Satu Dashboard, Semua Platform*: KPI gabungan di Overview (`KPI_ROW_1`/`KPI_ROW_2`) sebelumnya di-hardcode terpisah dari angka per-platform di Detail Platform — nggak provably "gabungan". Fix: `PLATFORM_RAW` (raw number per platform) + `features/overview-dashboard/lib/kpi.ts` — ROAS gabungan di-spend-weighted (bukan rata-rata naif), CPA/CTR gabungan dihitung ulang dari total (bukan rata-rata dari CPA/CTR masing-masing platform), `CHANNEL_CHART_DATA` ikut derive dari sumber yang sama. Satu-satunya angka yang berubah tampilannya: CPA TikTok per-platform Rp63rb → Rp64rb (pembulatan yang sebelumnya salah, sekarang benar).
+  2. *Copy as Report Sekali Klik*: tombol Copy/Download sebelumnya cuma toast palsu. Fix: Copy beneran nulis teks laporan terformat ke clipboard (Clipboard API), Download beneran generate PNG dari card laporan pakai `html2canvas` (lazy-loaded) lalu trigger download file asli.
+  3. *Sync Real-Time*: sebelumnya cuma ada di Overview & AI Insight (Detail Platform nggak ada sama sekali), dan tiap halaman punya state "kapan terakhir sync" sendiri-sendiri. Fix: `stores/sync.ts` (zustand) dipakai bersama oleh Overview/Detail Platform/AI Insight — sync dari halaman mana pun update indikator di semua halaman; Detail Platform sekarang punya tombol Sync.
+  4. *AI Insight yang Mudah Dipahami*: dicek, udah paling lengkap dari 4 fitur ini (Priority Panel, Benchmark, Budget Rec, stats) — nggak ada perbaikan yang dibutuhin sesi ini.
+- Nambah 1 dependency baru: `html2canvas` (dicek `npm audit` — 5 vulnerability yang muncul semua dari Next.js 14.2.35/postcss/glob yang udah ada sebelumnya, bukan dari `html2canvas`).
+- Test lama yang kena breaking-change dari refactor async Sync store (`insight/__tests__/page.test.tsx`) dibenerin (`act(() => ...)` → `await act(async () => ...)` biar microtask dari `await triggerSync()` ke-flush).
+- Verifikasi: `tsc --noEmit` bersih, 78/78 test tetap lolos, `next build` sukses, smoke test manual (curl ke `/overview`, `/detail`, `/insight` pas `next dev`) konfirmasi nilai KPI gabungan yang baru dan tombol Sync di Detail Platform muncul tanpa error runtime.
+- **Belum di-push ke remote** — repo belum ada remote/GitHub yang di-setup (user bilang "belum integrated"), semua kerjaan masih commit lokal aja di `main`.
+
+**Sesi kesembilan (2026-08-03) — landing page full redesign, dari draft Artifact ke Next.js beneran:**
+- **Proses:** desain di-iterasi dulu di Claude Artifact (brainstorming → 1 file HTML/CSS/JS self-contained, font Bricolage Grotesque + Inter di-embed sebagai data URI) — beberapa ronde revisi (copy jadi "professional tapi santai", chart CPA-only diperluas jadi multi-KPI ROAS/CPA/CTR/Closing, FAQ dipindah ke tengah halaman, pricing dapet toggle Bulanan/Tahunan) — baru setelah disetujui, ditulis jadi `plan-2026-08-03-landing-redesign.md` (16 task) dan di-porting ke kode.
+- **Ditemukan pas mau commit:** repo ini ternyata cuma punya 1 commit history ("Initial commit from Create Next App") — seluruh kerjaan sesi 1-8 (~9000 baris) belum pernah ke-commit, cuma numpuk di working tree. Di-commit dulu sebagai 1 checkpoint terpisah sebelum mulai kerjaan landing redesign, biar history-nya jelas ada baseline-nya.
+- **Eksekusi plan:** mulai pakai TDD ketat (test dulu, verify fail, implement, verify pass) buat 3 task pertama (Reveal wrapper, mock-data, computeTrendDelta) — lalu atas permintaan user, sisanya (Task 4-16) di-eksekusi langsung tanpa nulis test baru per komponen, fokus ke implementasi cepat + clean code, verifikasi cukup lewat `tsc`/`vitest run` (suite lama)/`next build`/smoke test SSR.
+- **Komponen baru** (`features/landing/components/`): `Nav`, `Hero` + `HeroMockup` (tab Meta/TikTok dengan angka KPI animasi tween, bukan cuma crossfade), `ProblemSection`, `HowItWorks`, `FeaturesGrid`, `FaqSection` (native `<details>`, posisi di tengah alur halaman), `AiInsightSpotlight` (reuse `InsightCard` asli dari fitur AI Insight + `getInsightsForPeriod`, bukan duplikasi markup), `StatsSection` (count-up), `TrendChartSection` (4 tab metrik pakai `recharts` `AreaChart`, pola toggle yang sama kayak `TrendChart`/`ChannelChart` di Overview), `TestimonialsSection` (rating bintang + angka hasil), `PricingSection` (comparison table + toggle Bulanan/Tahunan).
+- **Dependency yang akhirnya kepake:** `framer-motion` dan `recharts` — dua-duanya udah lama ada di `package.json` tapi belum pernah dipakai di komponen manapun sebelum ini.
+- **Dibuang:** `FREE_FEATURES`/`PRO_FEATURES` (diganti `PRICING_ROWS` buat comparison table), `src/app/__tests__/page.test.tsx` lama (markup-nya udah nggak ada lagi).
+- **Belum ada test baru** buat 13 komponen landing yang baru (di luar `Reveal` + `mock-data` + `computeTrendDelta` yang sempet ke-TDD di awal) — sengaja di-skip sesi ini atas permintaan user buat prioritasin implementasi, user mau review manual dulu. **Kalau lanjut nanti:** pertimbangkan nambah test coverage buat komponen-komponen ini sebelum dianggap "selesai" beneran (pola test sudah ada di `plan-2026-08-03-landing-redesign.md` per komponen kalau mau dipakai lagi).
+- Verifikasi yang beneran jalan: `tsc --noEmit` bersih, suite lama tetap 78/78 lolos, `next build` sukses (9 route, `/` sekarang 65.9kB/294kB First Load JS — naik dari sebelumnya karena narik `recharts`+`framer-motion`), smoke test SSR (`curl` ke `/` pas `next dev`) konfirmasi semua 10 section headline render tanpa error runtime.
+
+**Sesi kedelapan (2026-08-03) — audit code + visual landing page publik (`/`), dikerjain langsung tanpa subagent (lightweight execution), atas permintaan user "improve apa yang perlu di-improve":**
+- **Bug nyata:** `<Button>` (elemen `<button>`) ke-nest di dalam `<Link>` (elemen `<a>`) di 6 tempat — invalid HTML (interactive element nested di interactive element lain), sebelumnya nggak konsisten sama pola di halaman lain. Fix pakai prop `asChild` yang udah ada di `components/ui/button.tsx` (Radix Slot) tapi belum pernah dipakai — sekarang `<Button asChild><Link>...</Link></Button>`.
+- **Metadata placeholder ke-skip:** `layout.tsx` masih `<title>Create Next App</title>` + description generic dari scaffold, dan `<html lang="en">` padahal semua konten Bahasa Indonesia. Diganti ke title/description produk asli + `lang="id"`.
+- **Zero test coverage** di `/` (satu-satunya halaman tanpa test di seluruh app) — ditambah `src/app/__tests__/page.test.tsx` (4 test: hero+CTA, feature/pricing cards, mobile menu `aria-expanded`, full checkout flow confirm→processing→success→redirect `/sign-in`).
+- Data `FEATURES`/`FREE_FEATURES`/`PRO_FEATURES` yang tadinya inline di `page.tsx` dipindah ke `features/landing/mock-data.ts`, konsisten sama konvensi folder fitur lain.
+- Aksesibilitas: tombol toggle menu mobile ditambah `aria-expanded`.
+- Visual: nav anchor `#fitur`/`#harga` ditambah `scroll-behavior: smooth` (global, `globals.css`) + `scroll-mt-20` di section target (biar nggak ketutup header yang `sticky`).
+- Verifikasi: `tsc --noEmit` bersih, test naik dari 69 ke 73 (semua lolos), `next build` sukses (9 route, ukuran halaman `/` nggak berubah signifikan).
+
+**Sesi ketujuh (2026-08-03) — Benchmark Industri & Rekomendasi Alokasi Budget, dikerjain langsung tanpa subagent (lightweight execution):**
+- 2 panel yang di sesi kelima sengaja tidak diporting (di luar scope checklist saat itu) sekarang diporting atas permintaan user: `BenchmarkPanel.tsx` (3 metrik ROAS/CPA/CTR vs rata-rata industri, bar chart + badge naik/turun) dan `BudgetRecommendationPanel.tsx` (saran realokasi Meta/TikTok, reuse pola `brec-row` dari mockup + komponen `Button` shared, tombol "Terapkan (simulasi)" nunjukin toast).
+- Data statis (`INDUSTRY_BENCHMARK`, `BUDGET_REC`) dan tipe (`BenchmarkMetric`, `BudgetRecommendation`) ditambah ke `features/insight/mock-data.ts` & `types.ts`; logic hitung delta (`computeBenchmarkDelta`) ditaruh di `insight-matcher.ts` biar komponen tetap dumb, konsisten pola yang udah ada.
+- Kedua panel ditaruh di grid 2 kolom (`grid-cols-2 max-[980px]:grid-cols-1`, pola yang sama dipakai Billing/Overview) di antara "Rekomendasi Prioritas" dan toolbar filter — persis urutan mockup HTML asli.
+- 8 test baru (3 unit `computeBenchmarkDelta` di `insight-matcher.test.ts`, 2 integrasi render+interaksi di `insight/page.test.tsx`, ditambah re-run test lain yang kena efek import baru) — total naik dari 64 ke 69, semua lolos. `tsc --noEmit` bersih, `next build` sukses (9 route tetap).
+
+**Sesi kelima (2026-08-02) — AI Insight (`/insight`), dikerjain langsung tanpa subagent (lightweight execution, atas permintaan user):**
+- Feature folder baru `features/insight/` (`types.ts`, `mock-data.ts`, `lib/insight-matcher.ts`, 5 komponen) + halaman `app/(dashboard)/insight/page.tsx`.
+- Template bank diperluas dari mockup HTML asli (5 item/periode) jadi **12 item/periode (4 per kategori × 3 kategori × 3 periode = 36 total)**, memenuhi checklist "minimal 4-5 skenario per kategori per periode".
+- Logic pencocokan kondisi didokumentasi di kode (`insight-matcher.ts`): `computeInsightStats` (angka stat dihitung dari data asli, bukan hardcode), `pickPriorityInsights` (Tinggi dulu, fallback Sedang kalau <2, max 3), `filterInsights` (kombinasi AND kategori+platform).
+- Kartu anomali #1 periode "Kemarin" **live** — dituntun dari `shouldShowProactiveAlert(PLATFORMS)` yang sama dipakai `ProactiveAlertCard` di Overview (satu sumber logic, bukan duplikasi angka) — checklist poin "dipakai juga di Proactive Alert Card" terpenuhi tanpa refactor file yang sudah lolos test sebelumnya.
+- Layout: stats row, banner perbandingan periode, panel "Rekomendasi Prioritas" (reuse pola `brec-row`), toolbar (select periode + select platform + chip kategori), grid 2 kolom kartu (icon badge, 3 tag, impact note, feedback 👍/👎 icon-only), tombol Sync & Analisis Ulang (loading ~1.5s → update timestamp + toast).
+- 13 test baru (`insight-matcher.test.ts` + `insight/page.test.tsx`), semua lolos. `tsc --noEmit` bersih, `next build` sukses (9 route: `/`, `/sign-in`, `/onboarding`, `/overview`, `/detail`, `/billing`, `/settings`, `/connect-platform`, `/insight`).
+- **Sengaja tidak diporting:** panel "Benchmark Industri" & "Rekomendasi Alokasi Budget" yang ada di mockup HTML — tidak disebut di checklist `05-ai-insight-panel.md` maupun `business-plan.md`, jadi di luar scope task ini (asumsi diambil biar tidak overbuild, bisa dikerjain terpisah kalau diminta).
+
+**Sesi keempat (2026-08-01, malam) — dikerjain langsung tanpa subagent (lightweight execution, atas permintaan user):**
+- **Toast/notification system** dibangun dari nol (`stores/ui.ts` + `components/ui/toaster.tsx`, mounted sekali di root layout) — sebelumnya sama sekali nggak ada.
+- **Semua tombol dekoratif yang sebelumnya tanpa `onClick`** sekarang jalan: Save View & Filters (Overview), Kelola metode pembayaran & Ganti (Billing), Download invoice terakhir (tombol baru di header Billing) + Download per-invoice (kolom baru di tabel Riwayat Invoice), dan "+ Tambah Bisnis Baru" (beneran nambah entry baru ke Business Switcher, bukan cuma toast).
+- **Sync button** (Overview) — klik nunjukin spinner ~1.3 detik lalu update teks "data terakhir diperbarui" jadi "baru saja" + toast sukses.
+- **Copy as Report** — modal `ExportReportModal` (shared, `components/shared/`) dipasang di Overview (scope "Semua Platform") dan Detail Platform (scope per-platform aktif, pakai data ROAS/Spend/Closing asli dari `PLATFORMS`), tombol Copy/Download nunjukin toast simulasi lalu nutup modal.
+- **Landing page publik** dibangun di root `/` (Hero, strip masalah, 4 fitur, Free vs Pro pricing, CTA akhir, footer) — halaman Sign In yang tadinya di `/` dipindah ke `/sign-in` (test-nya ikut dipindah, isi test nggak berubah). "Pilih Pro" buka `CheckoutModal` (mock 3-tahap confirm→processing→success, khusus untuk subscriber baru, beda dari `PaymentGatewayModal` yang buat renewal existing subscriber) yang berakhir dengan CTA ke `/sign-in`.
+- Semua verifikasi: `tsc --noEmit` bersih, `npm run test` 51/51 tetap lolos (nggak ada test baru ditulis untuk kerjaan ini — murni wiring UI + 1 halaman baru, dianggap cukup di-cover manual smoke test SSR + regression test suite yang ada, konsisten sama arahan "jangan terlalu heavy"), `next build` sukses (12 route ke-generate).
+
+**Yang tersisa:**
+1. **Wiring logic Part A (Firebase Auth + Firestore) — SELESAI sesi kesebelas.** Firestore security rules belum ditulis (masih default/test-mode kalau project Firebase-nya baru dibuat — developer perlu set sendiri sebelum deploy beneran, di luar scope agent).
+2. **Wiring logic Part B — SELESAI sesi kesebelas (slice KPI/PLATFORM_RAW + AI Insight live-anomaly), dan full-migrasi sisa mock data (Campaign/Creative/Trend chart) SELESAI sesi keduabelas.** Semua data dashboard sekarang scoped per `businessId` lewat `/api/platform-metrics`.
+3. Write-up assessment (Phase 4) — dokumentasi/presentasi proses kerja buat interview, belum mulai sama sekali. `decisions-log.md` (baru, sesi kesebelas) udah nyiapin sebagian bahan ini (keputusan teknis per-topik + alasan).
+
+**Kalau user minta lanjut lagi**, tanya dulu: mau full-migrasi sisa mock data (Campaign/Creative/Trend) ke Part B, atau masih ada yang lain.
+
+**Standing instruction dari user:** update file ini (`PROGRESS.md`) setiap kali ada task/plan yang selesai — dipakai buat presentasi assessment Sr. FE Dev user. Lihat memory `feedback-progress-hub-updates`.
+
+**Sesi keenam (2026-08-02) — responsive/FE polish pass (dikerjain langsung, tanpa plan file):**
+- **Sidebar dashboard rusak total di mobile** (gap nyata, ketemu pas audit) — lebar fixed 236px nggak pernah collapse, konten kepepet ke ~150px di layar <400px. Fix: `Sidebar.tsx` + `BusinessSwitcher.tsx` collapse jadi icon-only rail (72px) di bawah 760px sesuai `design-system.md` ("sidebar menyusut jadi icon-only di layar sempit") — label disembunyikan, `title` tooltip ditambahin buat aksesibilitas, dropdown Business Switcher disesuaikan biar nggak ikut kepepet.
+- `Dialog` (`components/ui/dialog.tsx`) — modal sebelumnya `w-full` tanpa gutter margin (nempel edge-to-edge di layar sempit) + nggak ada scroll kalau konten lebih tinggi dari viewport. Fix: `w-[calc(100%-2rem)]` + `max-h-[calc(100vh-2rem)] overflow-y-auto`, rounded-lg konsisten di semua ukuran layar (sebelumnya cuma rounded di `sm:` ke atas).
+- Diaudit & confirmed OK (nggak perlu fix): Overview, Detail Platform, Billing (2 tab), Settings (3 tab), Connect Platform, AI Insight, Sign In, Onboarding — semua grid/table/toolbar udah punya breakpoint yang bener (`max-[980px]:grid-cols-*`, table udah ada `overflow-x-auto`).
+- Verifikasi: `tsc --noEmit` bersih, 64/64 test tetap lolos, `next build` sukses.
+
+## Ringkasan Cepat
+
+| Phase | Status |
+|---|---|
+| Phase 0 — Foundation | 🔶 4/5 item (Firebase project asli & auth flow masih partial) |
+| Phase 1 — Core Dashboard | ✅ **UI porting selesai semua** (Sign In, Onboarding, Overview, Business Switcher, Detail Platform, Billing, Settings, Connect Platform) — logic/data wiring masih mock, belum Firebase |
+| Phase 2 — AI Layer | ✅ **AI Insight (`/insight`) selesai** — logic/data masih mock/template (sesuai keputusan sadar di `05-ai-insight-panel.md`) |
+| Phase 3 — Monetization | 🔶 Billing (bagian dari `08-pricing-page.md`) selesai UI-nya + landing page publik (`/`) dengan pricing section & mock checkout |
+| Phase 4 — Polish & Write-up | 🔶 **Gap-fix pass selesai**: toast system, semua tombol dekoratif ke-wire, Sync, Copy as Report, + polish landing page (mobile nav/footer, 2 halaman legal) — sisanya (write-up assessment) belum mulai |
+
+## 📊 Angka akhir Phase 1 UI-slicing
+
+- **6 plan file**, **19 task**, semua approved reviewer independen (implementer subagent → reviewer subagent, tiap task)
+- **27 file test, 51 test** — semua lolos
+- **8 route** hidup: `/` (landing), `/sign-in`, `/onboarding`, `/overview`, `/detail`, `/billing`, `/settings`, `/connect-platform`
+- **Bug nyata yang ketemu & difix selama proses** (bukan cuma dari plan-nya, tapi ketauan pas eksekusi — bagus buat cerita proses review di assessment): salah hitung persentase test (77%→69%), nested `<b>` yang bikin RTL gagal cocokin teks (2x kejadian beda file), `ROWS` di `TargetTracker` yang jadi konstanta beku (stale snapshot bug — Set Target nggak bakal update tampilan), koleksi regex test vs teks deskripsi yang tumpang tindih, shadcn CLI `@latest` yang generate kode Tailwind v4 nggak kompatibel (di-pin ke `@2` + reconcile token warna manual).
+
+## Plan Files & Statusnya
+
+Semua plan Phase 0/1 ada di `plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `superpowers:writing-plans`, dieksekusi pakai `superpowers:subagent-driven-development` (tiap task: implementer subagent → task reviewer subagent independen → fix kalau ada temuan). **AI Insight (sesi kelima) tidak punya plan file** — dikerjain langsung tanpa ritual plan/subagent atas permintaan eksplisit user ("gausah terlalu banyak pake skills, eksekusi langsung"), riset spek tetap dibaca dulu (`05-ai-insight-panel.md`, `design-system.md`, mockup HTML) sebelum nulis kode.
+
+| Plan file | Cakupan | Status |
+|---|---|---|
+| `plan-2026-08-01-lensa-phase0.md` | Part A: fix 2 gap mockup HTML. Part B: scaffold Next.js 14 + Tailwind v3 + shadcn/ui + Firebase client + testing infra + folder convention (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-1.md` | App Shell (Sidebar/BusinessSwitcher/TopBar/NotifDropdown) + halaman Overview lengkap (KPI, target, alert, chart, table+modal) — UI-only, mock data lokal (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-2.md` | Halaman Sign In (awalnya di `/`, dipindah ke `/sign-in` sesi keempat pas landing page publik dibangun) + Onboarding (`/onboarding`), nyambung ke `/overview` — UI-only (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-3.md` | Halaman Detail Platform (`/detail`): switcher, KPI grid, trend chart, campaign table (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-4.md` | Halaman Billing (`/billing`): tab Ringkasan (plan+payment+invoice) + Paket Tersedia (Free/Pro) + modal Payment Gateway (confirm→processing→success) (3 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-5.md` | Halaman Settings (`/settings`): tab Team & Akses (+invite modal), Notifikasi (toggle), Keamanan (2FA+audit log) (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plan-2026-08-01-lensa-phase1-ui-slice-6.md` | Halaman Connect Platform dalam dashboard (`/connect-platform`): list platform + sync health + reconnect (1 task) | ✅ **Selesai**, step checked, task approved reviewer |
+
+**Belum ada plan file untuk:** AI Insight (di-skip atas permintaan user), dan seluruh wiring logic beneran (Firebase Auth, Firestore, real data layer).
+
+## Route Map (`lensa-app/`) — apa yang beneran udah bisa diakses
+
+| Route | Halaman | Status |
+|---|---|---|
+| `/` | **Landing page publik** (redesign sesi kesembilan) | ✅ Nav, Hero (mockup interaktif Meta/TikTok), Problem, How it Works, Fitur, FAQ (tengah halaman), AI Insight spotlight, Stats, Trend chart multi-KPI (`recharts`), Testimoni, Pricing (toggle Bulanan/Tahunan) + comparison table, CTA, footer — "Pilih Pro" buka mock checkout modal |
+| `/sign-in` | Sign In (dipindah dari `/`) | ✅ UI + simulasi loading, navigate ke `/onboarding` |
+| `/onboarding` | Connect Platform (onboarding) | ✅ UI + simulasi connect, navigate ke `/overview` |
+| `/overview` | Dashboard Overview | ✅ UI lengkap, mock data lokal + Sync button + Copy as report |
+| `/detail` | Detail Platform | ✅ Switcher + KPI grid (8 metrik) + trend chart (Spend/Closing toggle) + campaign table + Copy as report, semua ke-filter sesuai platform aktif |
+| `/billing` | Billing | ✅ Tab Ringkasan + Paket Tersedia + modal payment gateway simulasi lengkap + Download invoice (header & per-row) |
+| `/settings` | Settings | ✅ Tab Team & Akses (+invite modal) + Notifikasi (toggle) + Keamanan (2FA+audit log) lengkap |
+| `/insight` | AI Insight | ✅ Stats row + banner perbandingan periode + Rekomendasi Prioritas + Benchmark Industri + Rekomendasi Alokasi Budget + toolbar (periode/platform/kategori) + grid 36 template (12/periode) + Sync & Analisis Ulang |
+| `/connect-platform` | Connect Platform (dalam dashboard) | ✅ selesai |
+| `/ketentuan-layanan` | Ketentuan Layanan (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
+| `/kebijakan-privasi` | Kebijakan Privasi (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
+
+## Yang Sengaja Belum Dikerjain (bukan kelupaan — dicatat di tiap plan file masing-masing)
+
+- **Semua logic/data beneran** (Firebase Auth, Firestore read/write, TanStack Query terhadap data asli) — masih fase "UI slicing dulu, wiring belakangan" sesuai keputusan user. Semua halaman yang udah ada pakai mock data lokal (`useState`/konstanta di file `mock-data.ts`), state ilang tiap navigasi/refresh.
+- "Copy as report" masih preview teks statis (sama kayak mockup HTML aslinya) — Copy/Download cuma nunjukin toast, belum ada `html2canvas` atau export gambar/PDF beneran. Sengaja segini aja biar konsisten sama fidelity mockup, bukan kelupaan.
+- Empty-state & error/retry state di Connect Platform onboarding.
+- Free-tier gate di Business Switcher (tambah bisnis ke-2).
+- Google Analytics & Marketplace Ads sebagai platform tambahan (katalog masih 2: Meta, TikTok).
+- Compare 2 Platform & Ticket/Support System — ini bukan "belum dikerjain", tapi **resmi dicoret dari scope**, lihat `business-plan.md` §9.
+
+## Known Gaps / Infra Notes (biar nggak keulang)
+
+- `npx shadcn@latest` **JANGAN dipakai** — generate kode Tailwind v4 yang bikin build gagal di project ini (Tailwind v3). Selalu pakai `npx shadcn@2 add <component>`, lalu cek `tailwind.config.ts`/`globals.css` nggak ke-duplikat/ke-timpa. Detail lengkap + prosedur di `31-frontend-nextjs.md` bagian "Adding new shadcn/ui components".
+- Tailwind v3 default scale nggak punya key `4.5`/`6.5`/`7.5`/`15` (yang ada cuma `0.5`/`1.5`/`2.5`/`3.5` di antara integer) — kalau nulis kode baru dengan class kayak `p-4.5` atau `size-6.5`, itu bakal di-drop diam-diam oleh Tailwind. Sudah beberapa kali ketemu & di-substitute ke key valid terdekat di plan-plan sebelumnya.
+- `tsconfig.json` udah ada `"types": ["vitest/globals"]` (ditambahin pas UI Slice 1 Task 2) — jangan dihapus, itu yang bikin `test`/`expect` ke-recognize TypeScript di file test tanpa import manual.
+- Firebase project asli **belum dibuat** — kalau mau lanjut ke wiring logic beneran, user perlu jalanin `firebase login` (interaktif, pakai `! firebase login` di prompt) dan bikin project dulu, baru isi `.env.local` (template ada di `lensa-app/.env.local.example`).
+
+## Cara Update File Ini
+
+Tiap kali sebuah plan file selesai (semua task approved reviewer):
+1. Tambahin baris baru di tabel "Plan Files & Statusnya".
+2. Update "Route Map" kalau ada halaman baru yang jadi bisa diakses.
+3. Update "Ringkasan Cepat" & baris relevan di `implementation-phases.md`.
+4. Update tanggal "Last updated" di atas.
