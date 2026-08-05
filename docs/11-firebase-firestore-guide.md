@@ -129,7 +129,7 @@ Kalau ke depannya kamu butuh, misal, collection `notifications`:
 
 Karena Firestore nggak punya schema enforcement, cara kamu "ngunci" struktur & akses data itu lewat **Firestore Security Rules** (file `firestore.rules`, di-deploy terpisah dari kode Next.js, lewat Firebase CLI/Console). Ini yang jawab pertanyaan "trus gimana caranya orang lain nggak bisa akses data user lain?"
 
-Contoh rule (bukan yang aktif di project ini, cuma ilustrasi):
+Rule yang **beneran aktif** di project ini, `firestore.rules` (root repo):
 ```
 rules_version = '2';
 service cloud.firestore {
@@ -138,14 +138,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
     match /businesses/{businessId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow read, update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
     }
   }
 }
 ```
 Rule ini bilang: "dokumen `users/{uid}` cuma bisa dibaca/ditulis kalau yang lagi login itu punya `uid` yang sama." Tanpa rule kayak ini, secara default Firestore project baru itu "test mode" — **siapa aja yang tau project ID-nya bisa baca/tulis semua data**, nggak ada proteksi apapun.
 
-**Status project ini:** `PROGRESS.md` udah nyatet ini sebagai gap — Security Rules **belum ditulis**, masih default/test-mode. Ini bukan kelupaan teknis, tapi karena butuh 1 Firebase project asli yang di-provision manual (developer login sendiri), di luar hal yang bisa dikerjain otomatis. **Ini juga item yang tadi muncul di pilihan "next task" sebelumnya** (waktu milih antara ini vs full-migrasi mock data) — belum dikerjain, masih pending.
+**Status project ini (per 2026-08-05):** file `firestore.rules` udah ditulis di repo, tapi **publish ke Firebase Console-nya harus manual** (Firestore Database → tab Rules → paste → Publish) — itu butuh login Firebase developer sendiri, di luar hal yang bisa dikerjain otomatis. Cek `PROGRESS.md` buat status terkini udah di-publish atau belum.
 
 ## 7. Ringkasan analogi (buat cepat nginget)
 
@@ -158,6 +159,82 @@ Rule ini bilang: "dokumen `users/{uid}` cuma bisa dibaca/ditulis kalau yang lagi
 | Gimana ngunci akses data? | `GRANT`/permission di level DB | **Security Rules** (file terpisah, di-deploy sendiri) |
 | ID dokumen/row | Biasanya auto-increment integer | String — bisa auto-generate (`addDoc`) atau kamu tentuin sendiri (`setDoc`, misal pakai `uid` dari Auth) |
 
+## 8. Alur registrasi — kenapa "tiba-tiba" bisa kedaftar padahal nggak ada backend registrasi yang ditulis sendiri
+
+Ini yang bikin Firebase kerasa "magic" — trace-nya persis di kode project ini:
+
+```ts
+// src/app/sign-up/page.tsx
+const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+```
+
+`createUserWithEmailAndPassword` itu fungsi dari Firebase Auth SDK. Di baliknya, dia kirim HTTPS POST ke `identitytoolkit.googleapis.com/v1/accounts:signUp?key=...` (endpoint sodaraan dari `accounts:lookup` yang dipanggil pas cek sesi login — bisa dilihat langsung di tab Network browser). **Google yang punya server itu** yang beneran bikin akunnya, hash password-nya, simpen di sistem Auth mereka, terus balikin `credential.user.uid`.
+
+Nggak pernah ada "endpoint registrasi" yang ditulis sendiri di project ini — karena Identity Toolkit-nya Google itu **sendiri** adalah backend registrasi-nya. Firebase Auth = nyewa backend auth yang udah jadi & battle-tested, bukan bikin dari nol.
+
+Tapi — penting — **bikin profil di Firestore itu langkah TERPISAH, bukan otomatis:**
+
+```ts
+// masih di sign-up/page.tsx, baris setelah createUserWithEmailAndPassword
+await createUserProfile(credential.user.uid, { name, email });
+```
+
+Firebase Auth cuma tau "ada akun dengan uid X" — dia nggak otomatis bikin dokumen apapun di Firestore. Kode aplikasi sendiri yang manggil `createUserProfile()` buat nulis ke `users/{uid}`. Dua sistem yang beda, disambungin manual lewat `uid`.
+
+## 9. Di mana query "di-setting"? — nggak ada, ini function call biasa di kode
+
+Nggak ada query builder UI di Firebase Console, nggak ada file config query terpisah. Query itu langsung function call dari SDK, nempel di komponen/hook yang butuh datanya:
+
+```ts
+// src/features/app-shell/api/use-businesses.ts
+const snapshot = await getDocs(
+  query(collection(getFirestoreDb(), "businesses"), where("ownerId", "==", ownerId))
+);
+```
+
+Baca ini kayak baca SQL: `collection(db, "businesses")` = `FROM businesses`, `where("ownerId", "==", ownerId)` = `WHERE ownerId = ?`, `getDocs(...)` = eksekusi query-nya. Firestore Console cuma punya tab **Rules** (§6) dan **Indexes** (buat query kompleks yang butuh index gabungan — query 1-field kayak di atas otomatis kepake tanpa setup manual). Nggak ada tab "tulis query di sini".
+
+## 10. Custom payload — nggak ada yang perlu "didaftarin" duluan
+
+Nggak ada skema yang harus diupdate di tempat lain sebelum nulis field baru. Misal mau nambah field custom ke dokumen business:
+
+```ts
+await addDoc(collection(db, "businesses"), {
+  ownerId,
+  name,
+  connectedPlatforms: [],
+  createdAt: serverTimestamp(),
+  industry: "fashion",   // ← tinggal tambah, langsung kesimpen
+});
+```
+
+Field `industry` langsung ada di dokumennya begitu ditulis — nggak ada migration, nggak ada approve skema di tempat lain. Yang **disarankan** (bukan wajib teknis) cuma 2: (a) update interface TypeScript-nya (`BusinessDoc` di `src/lib/firebase/types.ts`) biar type-safe di kode, dan (b) kalau field itu perlu dibatasi siapa yang boleh nulis/baca, tambahin logic-nya di `firestore.rules` (§6) — soalnya rules nggak otomatis tau field baru itu "harus" divalidasi gimana, itu tetep manual.
+
+## 11. Kenapa pakai Firebase — kelebihan & kekurangan
+
+Firebase itu kategori **BaaS (Backend as a Service)** — bukan cuma database, tapi paket auth+database+hosting yang dikelola penuh oleh Google. Ini alasan generik kenapa BaaS/Firebase dipilih, plus alasan spesifik project ini (lihat juga `decisions-log.md` §2.2 buat versi ringkasnya).
+
+### Kelebihan
+- **Nggak perlu bangun backend sendiri.** Auth, database, hosting — semua dikelola Google. Buat project time-boxed (assessment, prototype), ini penghematan waktu yang besar banget dibanding nulis REST API + setup server sendiri.
+- **Auth itu susah dibuat bener sendiri** — hashing password, session token, refresh token, reset password, rate-limiting brute-force — Firebase udah handle semua ini secara aman & battle-tested. Salah 1 langkah kalau bikin manual = lubang keamanan nyata.
+- **Client SDK bisa langsung ngomong ke database dari browser** — nggak perlu bikin REST/GraphQL API layer sendiri buat CRUD simpel. Security Rules jadi pagar akses, bukan kode endpoint yang harus ditulis & dites satu-satu.
+- **Scaling otomatis** — nggak ada capacity planning server, nggak ada DevOps buat nambah kapasitas baca/tulis.
+- **Free tier (Spark plan) generous** — cukup buat prototype/assessment tanpa biaya.
+- **Real-time listener built-in** (`onSnapshot`) — kalau nanti butuh data yang update live tanpa refresh, tinggal pakai (project ini belum pakai, masih one-time read via TanStack Query, tapi kapabilitasnya ada).
+
+### Kekurangan
+- **Query terbatas** — nggak ada `JOIN`, agregasi lintas-dokumen terbatas. Sering harus denormalisasi (duplikasi data di banyak dokumen) buat hindari banyak round-trip — trade-off yang udah kelihatan di §4 (`ownerId` disimpan di tiap business doc, bukan di-JOIN dari user doc).
+- **Vendor lock-in** — kode & pola data-nya nempel ke Firebase. Migrasi ke Postgres/backend custom nanti = rewrite beneran, bukan cuma ganti config.
+- **Security Rules punya learning curve & gampang salah** — ini bukan teori, kejadian beneran di project ini: rules-nya sempet nggak ditulis sama sekali (masih default) sampai ditemukan pas ngecek deployment readiness. Beda dari kode backend biasa yang bisa di-unit-test, Rules itu DSL terpisah yang lebih susah ditest komprehensif.
+- **API key ter-embed di client by design** — bukan bug, tapi konsekuensinya keamanan 100% bergantung ke Rules yang bener. Nggak ada opsi "sembunyiin backend" kayak server tradisional.
+- **Harga bisa nggak terduga di skala besar** — bayar per baca/tulis/dokumen. Nggak masalah buat prototype kecil, tapi perlu direview kalau usernya udah banyak.
+- **Testing butuh effort ekstra** — kode yang manggil Firebase SDK butuh di-mock (`vi.mock`) buat unit test, atau pakai Firebase Emulator Suite (belum di-setup di project ini) buat integration test yang lebih realistis.
+
+### Kenapa project ini yang pilih Firebase (bukan cuma "karena gratis")
+- Prinsip **"pilih profil infra paling kecil yang cukup"** — kebutuhan CRUD di sini (user, business) relatif sederhana, nggak butuh backend custom.
+- Assessment ini time-boxed, solo developer — BaaS ngilangin bottleneck "bangun backend dulu" sepenuhnya.
+- Sengaja **cuma** dipakai buat data yang genuinely real (Auth, user, business) — data ads/metrics yang emang mock **sengaja nggak** ditaruh di Firestore (`decisions-log.md` §3.4), biar nggak nyamain "data fake" jadi kerasa seperti "data backend asli". Ini nunjukin Firebase dipilih dengan judgment, bukan dipakai buta buat semua hal.
+
 ## File reference
 
 | File | Isi |
@@ -168,6 +245,6 @@ Rule ini bilang: "dokumen `users/{uid}` cuma bisa dibaca/ditulis kalau yang lagi
 | `src/app/sign-up/page.tsx` | Contoh Auth (password) + Firestore (profil) dipanggil berurutan |
 | `src/features/app-shell/api/use-businesses.ts` | Contoh query baca (`where`, `getDocs`) |
 | `src/features/connect-platform/api/use-connect-platform.ts` | Contoh update sebagian field (`updateDoc` + `arrayUnion`) |
-| `firestore.rules` | **Belum ada di project ini** — kalau dibuat nanti, ini tempatnya |
+| `firestore.rules` | Rules yang aktif (root repo) — status publish-nya di `PROGRESS.md` |
 
 Lihat juga: `10-data-flow-reference.md` (gimana data ini dikonsumsi end-to-end, termasuk domain ads-metrics yang beda arsitektur total), `decisions-log.md` §2 (keputusan seputar Auth/route guard).
