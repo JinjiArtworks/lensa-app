@@ -1,10 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { PlatformRaw } from "../lib/kpi";
-import { derivePlatformsData, type OverviewData, type PlatformKey } from "../mock-data";
-
-type PlatformMetricsResponse = Record<PlatformKey, { current: PlatformRaw; previous: PlatformRaw }>;
+import { derivePlatformsData, type OverviewData, type PlatformMetricsResponse } from "../mock-data";
 
 async function fetchPlatformMetrics(businessId: string): Promise<PlatformMetricsResponse> {
   const res = await fetch(`/api/platform-metrics?businessId=${encodeURIComponent(businessId)}`);

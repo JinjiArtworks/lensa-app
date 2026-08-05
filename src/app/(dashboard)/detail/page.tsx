@@ -67,8 +67,8 @@ export default function DetailPlatformPage() {
             <>
               <h2 className="mb-3 text-[17px] font-bold">{activePlatform.name}</h2>
               <PlatformKpiGrid platformKey={platform} platforms={data.PLATFORMS} />
-              <PlatformTrendChart platformKey={platform} />
-              <PlatformCampaignTable platformKey={platform} />
+              <PlatformTrendChart platformKey={platform} trendData={data.PLATFORM_TREND} />
+              <PlatformCampaignTable platformKey={platform} campaigns={data.CAMPAIGNS} />
               <ExportReportModal
                 open={exportOpen}
                 onClose={() => setExportOpen(false)}

@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis } from "recharts";
-import { TREND_DATA } from "../mock-data";
 
-export function TrendChart() {
+export function TrendChart({
+  trendData,
+}: {
+  trendData: Record<7 | 30, { day: string; current: number; previous: number }[]>;
+}) {
   const [period, setPeriod] = useState<7 | 30>(7);
-  const data = TREND_DATA[period];
+  const data = trendData[period];
 
   return (
     <div className="rounded-2xl border border-line bg-card p-4">

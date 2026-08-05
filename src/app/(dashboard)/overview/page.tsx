@@ -69,9 +69,9 @@ export default function OverviewPage() {
           <ProactiveAlertCard platforms={data.PLATFORMS} />
           <div className="mb-4 grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
             <ChannelChart chartData={data.CHANNEL_CHART_DATA} />
-            <TrendChart />
+            <TrendChart trendData={data.TREND_DATA} />
           </div>
-          <CampaignTable />
+          <CampaignTable campaigns={data.CAMPAIGNS} creatives={data.CREATIVES} />
           <ExportReportModal
             open={exportOpen}
             onClose={() => setExportOpen(false)}

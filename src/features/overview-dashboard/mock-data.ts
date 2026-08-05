@@ -59,21 +59,53 @@ function buildMetrics(current: PlatformRaw, previous: PlatformRaw): Record<strin
   };
 }
 
+export type CampaignStatus = "active" | "paused" | "pending" | "archived";
+
+export interface Campaign {
+  name: string;
+  status: CampaignStatus;
+  channel: "Meta Ads" | "TikTok Ads";
+  spend: number;
+  ctr: string;
+  conv: number;
+  edited: string;
+}
+
+export interface Creative {
+  name: string;
+  ctr: string;
+  status: "Winning" | "Fatigue" | "Baru";
+}
+
+// The full shape returned by GET /api/platform-metrics — campaigns/creatives/
+// trend/platformTrend are seeded per businessId server-side (see the Route
+// Handler), same as meta/tiktok.
+export interface PlatformMetricsResponse {
+  meta: { current: PlatformRaw; previous: PlatformRaw };
+  tiktok: { current: PlatformRaw; previous: PlatformRaw };
+  campaigns: Campaign[];
+  creatives: Record<string, Creative[]>;
+  trend: Record<7 | 30, { day: string; current: number; previous: number }[]>;
+  platformTrend: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
+}
+
 export interface OverviewData {
   PLATFORMS: Record<PlatformKey, PlatformData>;
   KPI_ROW_1: { label: string; value: string; cls: "up" | "down" | ""; sub: string }[];
   KPI_ROW_2: { label: string; value: string; cls: "up" | "down" | ""; sub: string }[];
   CHANNEL_CHART_DATA: { spend: { name: string; value: number }[]; closing: { name: string; value: number }[] };
   ACTUALS: { roas: number; closing: number };
+  CAMPAIGNS: Campaign[];
+  CREATIVES: Record<string, Creative[]>;
+  TREND_DATA: Record<7 | 30, { day: string; current: number; previous: number }[]>;
+  PLATFORM_TREND: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
 }
 
 // Derives every Overview/Detail-Platform-facing number from the raw
 // current+previous metrics fetched per business — nothing here is a
 // module-level constant anymore (see git history before this refactor for
 // the old hardcoded PLATFORM_RAW/PLATFORMS/KPI_ROW_1/etc.).
-export function derivePlatformsData(
-  raw: Record<PlatformKey, { current: PlatformRaw; previous: PlatformRaw }>
-): OverviewData {
+export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData {
   const PLATFORMS: Record<PlatformKey, PlatformData> = {
     meta: { ...PLATFORM_LABELS.meta, metrics: buildMetrics(raw.meta.current, raw.meta.previous) },
     tiktok: { ...PLATFORM_LABELS.tiktok, metrics: buildMetrics(raw.tiktok.current, raw.tiktok.previous) },
@@ -143,6 +175,10 @@ export function derivePlatformsData(
     KPI_ROW_2,
     CHANNEL_CHART_DATA,
     ACTUALS: { roas: combinedCurrent.roas, closing: combinedCurrent.closing },
+    CAMPAIGNS: raw.campaigns,
+    CREATIVES: raw.creatives,
+    TREND_DATA: raw.trend,
+    PLATFORM_TREND: raw.platformTrend,
   };
 }
 
@@ -150,27 +186,6 @@ export const TARGETS = { roas: 3.5, closing: 90 };
 
 export const CONNECTED_PLATFORM_COUNT = 2;
 export const TOTAL_PLATFORM_CATALOG = 2; // becomes 4 once GA/Marketplace Ads are added in a later plan
-
-export type CampaignStatus = "active" | "paused" | "pending" | "archived";
-
-export interface Campaign {
-  name: string;
-  status: CampaignStatus;
-  channel: "Meta Ads" | "TikTok Ads";
-  spend: number;
-  ctr: string;
-  conv: number;
-  edited: string;
-}
-
-export const CAMPAIGNS: Campaign[] = [
-  { name: "Summer Sale 2025", status: "active", channel: "Meta Ads", spend: 4250, ctr: "3.6%", conv: 123, edited: "09/12/2025" },
-  { name: "Autumn Collection", status: "paused", channel: "Meta Ads", spend: 3420, ctr: "4.2%", conv: 87, edited: "08/12/2025" },
-  { name: "Back-to-School Promo", status: "active", channel: "TikTok Ads", spend: 1980, ctr: "2.9%", conv: 121, edited: "09/12/2025" },
-  { name: "Holiday Teaser Ads", status: "archived", channel: "TikTok Ads", spend: 1300, ctr: "1.7%", conv: 44, edited: "07/12/2025" },
-  { name: "Retargeting Cart Abandon", status: "pending", channel: "Meta Ads", spend: 860, ctr: "4.2%", conv: 44, edited: "08/12/2025" },
-  { name: "Product Launch Beta", status: "active", channel: "TikTok Ads", spend: 1760, ctr: "5.1%", conv: 87, edited: "07/12/2025" },
-];
 
 export const STATUS_LABEL: Record<CampaignStatus, string> = {
   active: "Active",
@@ -183,53 +198,4 @@ export function formatRupiah(nRibu: number): string {
   return "Rp" + (nRibu * 1000).toLocaleString("id-ID");
 }
 
-export interface Creative {
-  name: string;
-  ctr: string;
-  status: "Winning" | "Fatigue" | "Baru";
-}
-
-export const CREATIVES: Record<string, Creative[]> = {
-  "Summer Sale 2025": [
-    { name: "Video Diskon 50% — 15 detik", ctr: "4.8%", status: "Winning" },
-    { name: "Carousel Koleksi Musim Panas", ctr: "3.4%", status: "Winning" },
-    { name: "Statis Harga Coret", ctr: "2.1%", status: "Fatigue" },
-  ],
-  "Autumn Collection": [
-    { name: "Lookbook Autumn — Reels", ctr: "4.6%", status: "Winning" },
-    { name: "Foto Produk Outdoor", ctr: "1.9%", status: "Fatigue" },
-  ],
-  "Back-to-School Promo": [
-    { name: "UGC Testimoni Pelajar", ctr: "5.2%", status: "Winning" },
-    { name: "Bundle Seragam — Statis", ctr: "2.4%", status: "Baru" },
-    { name: "Video Unboxing 20 detik", ctr: "3.0%", status: "Baru" },
-  ],
-  "Product Launch Beta": [
-    { name: "Teaser Produk Baru — 10 detik", ctr: "5.6%", status: "Winning" },
-    { name: "Behind the Scene Produksi", ctr: "4.1%", status: "Baru" },
-    { name: "Slideshow Fitur Produk", ctr: "2.2%", status: "Fatigue" },
-  ],
-};
-
 export const PAGE_SIZE = 5;
-
-export const TREND_DATA: Record<7 | 30, { day: string; current: number; previous: number }[]> = {
-  7: [
-    { day: "1", current: 460, previous: 420 },
-    { day: "2", current: 490, previous: 430 },
-    { day: "3", current: 530, previous: 400 },
-    { day: "4", current: 520, previous: 440 },
-    { day: "5", current: 560, previous: 450 },
-    { day: "6", current: 600, previous: 460 },
-    { day: "7", current: 640, previous: 480 },
-  ],
-  30: [
-    { day: "1", current: 1.9, previous: 1.5 },
-    { day: "5", current: 2.1, previous: 1.6 },
-    { day: "10", current: 2.2, previous: 1.7 },
-    { day: "15", current: 2.5, previous: 1.9 },
-    { day: "20", current: 2.8, previous: 2.1 },
-    { day: "25", current: 3.3, previous: 2.2 },
-    { day: "30", current: 3.8, previous: 2.4 },
-  ],
-};

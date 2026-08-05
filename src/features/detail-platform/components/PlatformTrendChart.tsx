@@ -3,12 +3,18 @@
 import { useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis } from "recharts";
 import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
-import { PLATFORM_TREND, PLATFORM_CHART_COLOR } from "../mock-data";
+import { PLATFORM_CHART_COLOR } from "../mock-data";
 import type { PlatformKey } from "./PlatformSwitcher";
 
-export function PlatformTrendChart({ platformKey }: { platformKey: PlatformKey }) {
+export function PlatformTrendChart({
+  platformKey,
+  trendData,
+}: {
+  platformKey: PlatformKey;
+  trendData: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
+}) {
   const [metric, setMetric] = useState<"spend" | "closing">("spend");
-  const data = PLATFORM_TREND[platformKey];
+  const data = trendData[platformKey];
   const color = PLATFORM_CHART_COLOR[platformKey];
 
   return (

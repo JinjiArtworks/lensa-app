@@ -40,3 +40,76 @@ export function seededPlatformRaw(seed: string, base: PlatformRaw, variancePct =
     campaignAktif: Math.max(1, Math.round(vary(base.campaignAktif))),
   };
 }
+
+// A single +/- variancePct multiplier seeded from `seed` — the building block
+// for varying campaigns/creatives/trend series below, where each item needs
+// its own independent scale rather than sharing seededPlatformRaw's per-field
+// PRNG stream.
+export function seededVariance(seed: string, variancePct = 0.25): number {
+  const rand = mulberry32(hashString(seed));
+  return 1 - variancePct + rand() * variancePct * 2;
+}
+
+// Same campaign catalog (name/channel/status) every business — only spend,
+// CTR and conversions vary, keyed per campaign name so numbers stay stable
+// across re-fetches for the same business.
+export function seededCampaigns<T extends { name: string; spend: number; ctr: string; conv: number }>(
+  seed: string,
+  base: T[],
+  variancePct = 0.25
+): T[] {
+  return base.map((campaign) => {
+    const scale = seededVariance(`${seed}:${campaign.name}`, variancePct);
+    const ctrValue = parseFloat(campaign.ctr) * scale;
+    return {
+      ...campaign,
+      spend: Math.round(campaign.spend * scale),
+      conv: Math.max(1, Math.round(campaign.conv * scale)),
+      ctr: `${ctrValue.toFixed(1)}%`,
+    };
+  });
+}
+
+// Same shape as seededCampaigns but for the per-campaign creative list — only
+// CTR varies, name/status stay put.
+export function seededCreatives<T extends { name: string; ctr: string }>(
+  seed: string,
+  base: Record<string, T[]>,
+  variancePct = 0.2
+): Record<string, T[]> {
+  const out: Record<string, T[]> = {};
+  for (const [campaignName, creatives] of Object.entries(base)) {
+    out[campaignName] = creatives.map((creative) => {
+      const scale = seededVariance(`${seed}:${campaignName}:${creative.name}`, variancePct);
+      const ctrValue = parseFloat(creative.ctr) * scale;
+      return { ...creative, ctr: `${ctrValue.toFixed(1)}%` };
+    });
+  }
+  return out;
+}
+
+// One scale factor applied uniformly across the whole series (not per-point)
+// so the shape/trend of the line stays coherent instead of turning jagged.
+export function seededTrendSeries<T extends { current: number; previous: number }>(
+  seed: string,
+  base: T[],
+  variancePct = 0.25
+): T[] {
+  const scale = seededVariance(seed, variancePct);
+  return base.map((point) => ({ ...point, current: point.current * scale, previous: point.previous * scale }));
+}
+
+// Same as seededTrendSeries but for the spend/closing shape used by the
+// per-platform trend chart.
+export function seededPlatformTrendSeries<T extends { spend: number; closing: number }>(
+  seed: string,
+  base: T[],
+  variancePct = 0.25
+): T[] {
+  const scale = seededVariance(seed, variancePct);
+  return base.map((point) => ({
+    ...point,
+    spend: point.spend * scale,
+    closing: Math.max(1, Math.round(point.closing * scale)),
+  }));
+}

@@ -1,16 +1,16 @@
 import { Badge } from "@/components/ui/badge";
-import { CAMPAIGNS, PLATFORM_LABELS, STATUS_LABEL, formatRupiah, type Campaign } from "@/features/overview-dashboard/mock-data";
+import { PLATFORM_LABELS, STATUS_LABEL, formatRupiah, type Campaign } from "@/features/overview-dashboard/mock-data";
 import type { PlatformKey } from "./PlatformSwitcher";
 
 export function PlatformCampaignTable({
   platformKey,
-  campaignsOverride,
+  campaigns,
 }: {
   platformKey: PlatformKey;
-  campaignsOverride?: Campaign[];
+  campaigns: Campaign[];
 }) {
   const platformName = PLATFORM_LABELS[platformKey].name;
-  const rows = campaignsOverride ?? CAMPAIGNS.filter((c) => c.channel === platformName);
+  const rows = campaigns.filter((c) => c.channel === platformName);
 
   return (
     <div className="rounded-2xl border border-line bg-card p-4">

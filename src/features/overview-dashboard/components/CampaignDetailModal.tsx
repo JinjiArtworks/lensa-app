@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CREATIVES, formatRupiah, type Campaign } from "../mock-data";
+import { formatRupiah, type Campaign, type Creative } from "../mock-data";
 
 const CREA_BADGE: Record<string, "active" | "archived" | "pending"> = {
   Winning: "active",
@@ -10,12 +10,14 @@ const CREA_BADGE: Record<string, "active" | "archived" | "pending"> = {
 
 export function CampaignDetailModal({
   campaign,
+  creatives: creativesByCampaign,
   onClose,
 }: {
   campaign: Campaign | null;
+  creatives: Record<string, Creative[]>;
   onClose: () => void;
 }) {
-  const creatives = campaign ? CREATIVES[campaign.name] ?? [] : [];
+  const creatives = campaign ? creativesByCampaign[campaign.name] ?? [] : [];
 
   return (
     <Dialog open={!!campaign} onOpenChange={(open) => !open && onClose()}>

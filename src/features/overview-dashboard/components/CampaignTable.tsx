@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
-import { CAMPAIGNS, PAGE_SIZE, STATUS_LABEL, formatRupiah, type Campaign, type CampaignStatus } from "../mock-data";
+import { PAGE_SIZE, STATUS_LABEL, formatRupiah, type Campaign, type CampaignStatus, type Creative } from "../mock-data";
 import { CampaignDetailModal } from "./CampaignDetailModal";
 
 const STATUS_BADGE: Record<CampaignStatus, "active" | "paused" | "pending" | "archived"> = {
@@ -15,7 +15,13 @@ const STATUS_BADGE: Record<CampaignStatus, "active" | "paused" | "pending" | "ar
   archived: "archived",
 };
 
-export function CampaignTable() {
+export function CampaignTable({
+  campaigns,
+  creatives,
+}: {
+  campaigns: Campaign[];
+  creatives: Record<string, Creative[]>;
+}) {
   const showToast = useUiStore((s) => s.showToast);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -23,10 +29,10 @@ export function CampaignTable() {
 
   const filtered = useMemo(
     () =>
-      CAMPAIGNS.filter(
+      campaigns.filter(
         (c) => c.name.toLowerCase().includes(query.toLowerCase()) || c.channel.toLowerCase().includes(query.toLowerCase())
       ),
-    [query]
+    [campaigns, query]
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -115,7 +121,7 @@ export function CampaignTable() {
         </div>
       </div>
 
-      <CampaignDetailModal campaign={selected} onClose={() => setSelected(null)} />
+      <CampaignDetailModal campaign={selected} creatives={creatives} onClose={() => setSelected(null)} />
     </div>
   );
 }
