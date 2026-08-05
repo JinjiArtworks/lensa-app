@@ -8,10 +8,12 @@ import { BrandMark } from "./BrandMark";
 
 // Order matches the section order on the page, so clicking through the nav
 // always scrolls forward — never jumps back up to an earlier section.
+// href is absolute ("/#id") so these always resolve to the homepage section,
+// even when clicked from another route like /ketentuan-layanan.
 const NAV_LINKS = [
-  { href: "#cara-kerja", label: "Cara Kerja" },
-  { href: "#fitur", label: "Fitur" },
-  { href: "#harga", label: "Harga" },
+  { id: "cara-kerja", href: "/#cara-kerja", label: "Cara Kerja" },
+  { id: "fitur", href: "/#fitur", label: "Fitur" },
+  { id: "harga", href: "/#harga", label: "Harga" },
 ];
 
 export function Nav() {
@@ -19,7 +21,7 @@ export function Nav() {
   const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
-    const sections = NAV_LINKS.map((link) => document.getElementById(link.href.slice(1))).filter(
+    const sections = NAV_LINKS.map((link) => document.getElementById(link.id)).filter(
       (el): el is HTMLElement => el !== null
     );
     if (sections.length === 0) return;
@@ -47,10 +49,10 @@ export function Nav() {
 
         <nav className="hidden items-center gap-6 text-[13px] font-semibold text-ink-2 md:flex">
           {NAV_LINKS.map((link) => {
-            const isActive = activeId === link.href.slice(1);
+            const isActive = activeId === link.id;
             return (
-              <a
-                key={link.href}
+              <Link
+                key={link.id}
                 href={link.href}
                 aria-current={isActive ? "true" : undefined}
                 className={`relative pb-0.5 transition-colors ${isActive ? "text-ink" : "hover:text-ink"}`}
@@ -62,7 +64,7 @@ export function Nav() {
                     isActive ? "opacity-100" : "opacity-0"
                   }`}
                 />
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -88,12 +90,12 @@ export function Nav() {
       </div>
 
       {menuOpen && (
-        <div className="flex flex-col gap-1 border-t border-line px-5 py-3 md:hidden">
+        <div className="flex flex-col gap-1 border-t border-line bg-card px-5 py-3 shadow-lg md:hidden">
           {NAV_LINKS.map((link) => {
-            const isActive = activeId === link.href.slice(1);
+            const isActive = activeId === link.id;
             return (
-              <a
-                key={link.href}
+              <Link
+                key={link.id}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 aria-current={isActive ? "true" : undefined}
@@ -102,7 +104,7 @@ export function Nav() {
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             );
           })}
           <Link href="/sign-in" className="rounded-lg px-2 py-2 text-[13px] font-semibold text-ink-2">

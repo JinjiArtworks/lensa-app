@@ -14,7 +14,7 @@ import { TrendChartSection } from "@/features/landing/components/TrendChartSecti
 import { PricingSection } from "@/features/landing/components/PricingSection";
 import { CheckoutModal } from "@/features/landing/components/CheckoutModal";
 import { Reveal } from "@/features/landing/components/Reveal";
-import { BrandMark } from "@/features/landing/components/BrandMark";
+import { Footer } from "@/features/landing/components/Footer";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -56,50 +56,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-line bg-white px-5 py-[60px]">
-        <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <div className="flex items-center gap-2">
-              <BrandMark size={26} />
-              <span className="font-display font-semibold text-ink-2">Lensa</span>
-            </div>
-            <p className="mt-3 max-w-[240px] text-[13px] leading-relaxed text-ink-2">
-              Satu dashboard untuk semua performa iklanmu — Meta Ads dan TikTok Ads, jernih dalam satu tampilan,
-              lengkap dengan AI yang membantu menentukan langkah berikutnya.
-            </p>
-          </div>
-          <div>
-            <div className="mb-3.5 text-[11.5px] font-extrabold uppercase tracking-wide text-ink-3">Produk</div>
-            {[
-              { href: "#cara-kerja", label: "Cara Kerja" },
-              { href: "#fitur", label: "Fitur" },
-              { href: "#harga", label: "Harga" },
-            ].map((l) => (
-              <a key={l.href} href={l.href} className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">
-                {l.label}
-              </a>
-            ))}
-          </div>
-          <div>
-            <div className="mb-3.5 text-[11.5px] font-extrabold uppercase tracking-wide text-ink-3">Perusahaan</div>
-            <a href="#top" className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">
-              Tentang Lensa
-            </a>
-            <a href="#top" className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">
-              Kontak
-            </a>
-          </div>
-          <div>
-            <div className="mb-3.5 text-[11.5px] font-extrabold uppercase tracking-wide text-ink-3">Legal</div>
-            <a href="#top" className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">
-              Ketentuan Layanan
-            </a>
-            <a href="#top" className="block py-1.5 text-[13.5px] text-ink-2 hover:text-ink">
-              Kebijakan Privasi
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     </div>
