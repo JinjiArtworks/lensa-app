@@ -14,6 +14,7 @@ export async function createDefaultBusiness(ownerId: string): Promise<string> {
     ownerId,
     name: "Bisnis Saya",
     connectedPlatforms: [],
+    plan: "free",
     createdAt: serverTimestamp(),
   });
   return ref.id;

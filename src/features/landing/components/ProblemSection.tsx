@@ -6,7 +6,7 @@ const CHAOS_CARDS = [
   { label: "Meta Ads Manager", sub: "Tab 1 dari 4", rotate: "md:-rotate-[7deg]", offset: "md:left-0 md:top-1" },
   { label: "TikTok Ads Manager", sub: "Tab 2 dari 4", rotate: "md:rotate-[5deg]", offset: "md:left-[130px] md:top-[30px]" },
   { label: "Spreadsheet Manual", sub: "Tab 3 dari 4", rotate: "md:rotate-[4deg]", offset: "md:left-[10px] md:top-[120px]" },
-  { label: "Grup WhatsApp Tim", sub: "Tab 4 dari 4", rotate: "md:-rotate-[4deg]", offset: "md:left-[150px] md:top-[150px]" },
+  { label: "Marketplace Seller Center", sub: "Tab 4 dari 4", rotate: "md:-rotate-[4deg]", offset: "md:left-[150px] md:top-[150px]" },
 ];
 
 function ChaosCard({ label, sub, className }: { label: string; sub: string; className?: string }) {
@@ -38,13 +38,12 @@ export function ProblemSection() {
             Masalah yang sering dialami pemilik bisnis
           </span>
           <h2 className="mt-3.5 font-display text-[26px] font-bold leading-tight tracking-tight sm:text-[28px] md:text-[36px]">
-            Empat tab kebuka bersamaan, tapi satu pertanyaan sederhana ini masih belum terjawab: iklan kita untung atau
-            nggak?
+            4 tab kebuka bareng, satu pertanyaan tetap belum terjawab: iklan untung atau nggak?
           </h2>
           <p className="mt-3.5 text-[15px] leading-relaxed text-ink-2 sm:text-[15.5px]">
-            Meta Ads Manager buat cek spend. TikTok Ads Manager buat cek closing. Spreadsheet buat rekap manual. Grup
-            WhatsApp buat mastiin datanya masih akurat. Bukan karena kamu nggak niat ngurus — cuma belum ada satu
-            tempat buat lihat semuanya sekaligus.
+            Meta Ads Manager buat cek spend. TikTok Ads Manager buat cek performa video. Spreadsheet buat rekap
+            manual. Marketplace Seller Center buat cek orderan yang beneran masuk. Bukan karena kamu nggak niat
+            ngurus — cuma belum ada satu tempat buat lihat semuanya sekaligus.
           </p>
         </Reveal>
 

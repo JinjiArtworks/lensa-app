@@ -8,11 +8,25 @@ import { BillingTabs, type BillingTab } from "@/features/billing/components/Bill
 import { PackageComparison } from "@/features/billing/components/PackageComparison";
 import { PlanSummary } from "@/features/billing/components/PlanSummary";
 import { PaymentGatewayModal } from "@/features/billing/components/PaymentGatewayModal";
+import { useBusinessPlan } from "@/features/connect-platform/api/use-connect-platform";
+import { useUpdateBusinessPlan } from "@/features/billing/api/use-update-plan";
+import type { BusinessPlan } from "@/lib/firebase/types";
 
 export default function BillingPage() {
   const showToast = useUiStore((s) => s.showToast);
+  const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
+  const { data: plan = "free" } = useBusinessPlan(activeBusinessId);
+  const updatePlan = useUpdateBusinessPlan(activeBusinessId);
   const [tab, setTab] = useState<BillingTab>("overview");
   const [paymentOpen, setPaymentOpen] = useState(false);
+
+  function handleSelectPlan(next: BusinessPlan) {
+    updatePlan.mutate(next, {
+      onSuccess: () =>
+        showToast(next === "pro" ? "Upgrade ke Pro berhasil (simulasi)" : "Plan diubah ke Free (simulasi)", "success"),
+      onError: () => showToast("Gagal ganti plan, coba lagi", "error"),
+    });
+  }
 
   return (
     <div>
@@ -27,8 +41,12 @@ export default function BillingPage() {
         </Button>
       </div>
       <BillingTabs active={tab} onChange={setTab} />
-      {tab === "overview" && <PlanSummary onOpenPayment={() => setPaymentOpen(true)} />}
-      {tab === "packages" && <PackageComparison />}
+      {tab === "overview" && (
+        <PlanSummary plan={plan} onOpenPayment={() => setPaymentOpen(true)} onViewPackages={() => setTab("packages")} />
+      )}
+      {tab === "packages" && (
+        <PackageComparison plan={plan} onSelectPlan={handleSelectPlan} pending={updatePlan.isPending} />
+      )}
       <PaymentGatewayModal open={paymentOpen} onClose={() => setPaymentOpen(false)} />
     </div>
   );

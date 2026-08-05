@@ -26,6 +26,7 @@ export function useAddBusiness(ownerId: string | undefined) {
         ownerId,
         name,
         connectedPlatforms: [],
+        plan: "free",
         createdAt: serverTimestamp(),
       });
       return ref.id;

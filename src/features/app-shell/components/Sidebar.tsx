@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BarChart3, Sparkles, CreditCard, Settings, Plus } from "lucide-react";
+import { LayoutDashboard, BarChart3, Sparkles, CreditCard, Settings, Plus, LogOut } from "lucide-react";
+import { useLogout } from "@/features/auth/use-logout";
 import { BusinessSwitcher } from "./BusinessSwitcher";
 
 export const NAV_ITEMS = {
@@ -20,6 +21,7 @@ export const NAV_ITEMS = {
 
 export function Sidebar() {
   const activePath = usePathname();
+  const logout = useLogout();
 
   return (
     <aside className="sticky top-0 flex h-screen w-[236px] shrink-0 flex-col border-r border-line bg-card p-3.5 max-[760px]:w-[72px] max-[760px]:px-2">
@@ -52,9 +54,18 @@ export function Sidebar() {
           <div className="truncate text-[12.5px] font-bold">Sinta W.</div>
           <div className="text-[10.5px] text-ink-3">Owner</div>
         </div>
-        <Link href="/settings" className="shrink-0 text-ink-3" title="Settings">
+        <Link href="/settings" className="shrink-0 text-ink-3 hover:text-ink-2" title="Settings">
           <Settings className="size-4" />
         </Link>
+        <button
+          type="button"
+          onClick={logout}
+          className="shrink-0 text-ink-3 hover:text-red"
+          title="Keluar"
+          aria-label="Keluar"
+        >
+          <LogOut className="size-4" />
+        </button>
       </div>
     </aside>
   );

@@ -1,10 +1,37 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
+import type { BusinessPlan } from "@/lib/firebase/types";
 import { INVOICES } from "../mock-data";
 
-export function PlanSummary({ onOpenPayment }: { onOpenPayment: () => void }) {
+export function PlanSummary({
+  plan,
+  onOpenPayment,
+  onViewPackages,
+}: {
+  plan: BusinessPlan;
+  onOpenPayment: () => void;
+  onViewPackages: () => void;
+}) {
   const showToast = useUiStore((s) => s.showToast);
+
+  if (plan === "free") {
+    return (
+      <div className="rounded-2xl border border-line bg-card p-4">
+        <h3 className="text-sm font-bold">
+          Free <span className="rounded bg-gray-bg px-1.5 py-0.5 text-[9.5px] font-extrabold text-ink-2">AKTIF</span>
+        </h3>
+        <div className="my-2.5 text-[22px] font-extrabold">
+          Rp0<span className="text-xs font-normal text-ink-3">/bulan</span>
+        </div>
+        <p className="mb-3.5 max-w-[420px] text-[12.5px] text-ink-2">
+          Kamu di plan Free — 1 platform, 1 pengguna, AI Insight dasar. Upgrade ke Pro buat multi-bisnis, semua
+          platform terhubung sekaligus, dan export laporan.
+        </p>
+        <Button onClick={onViewPackages}>Lihat Paket Pro</Button>
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -20,9 +20,3 @@ export const signInSchema = z.object({
 });
 
 export type SignInInput = z.infer<typeof signInSchema>;
-
-export const forgotPasswordSchema = z.object({
-  email: z.string().email("Email tidak valid"),
-});
-
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

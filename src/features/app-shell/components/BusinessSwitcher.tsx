@@ -75,7 +75,8 @@ export function BusinessSwitcher() {
             disabled={addBusiness.isPending}
             onClick={() =>
               addBusiness.mutate(`Bisnis Baru #${businesses.length + 1}`, {
-                onSuccess: () => showToast("Bisnis baru ditambahkan"),
+                onSuccess: () => showToast("Bisnis baru ditambahkan", "success"),
+                onError: () => showToast("Gagal menambah bisnis, coba lagi", "error"),
               })
             }
             className="w-full rounded-lg p-2 text-left text-[12.5px] font-bold text-accent-text hover:bg-bg disabled:opacity-45"
