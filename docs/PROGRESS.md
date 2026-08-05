@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-05 (sesi keduabelas — polish landing page + full-migrasi Campaign/Creative/Trend per-bisnis + `docs/` dipindah masuk ke repo + 4 subagent diaktifkan + konsolidasi 25→10 file `.md`)
+**Last updated:** 2026-08-05 (sesi keduabelas — polish landing page + full-migrasi Campaign/Creative/Trend per-bisnis + `docs/` dipindah masuk ke repo + 4 subagent diaktifkan + konsolidasi 25→10 file `.md` + `firestore.rules` + prep deployment ke Vercel)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -55,6 +55,16 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **Hasil:** `docs/` flat turun dari 25 file jadi 10 (+ 9 di `docs/plans/` sebagai appendix, bukan dihapus). Target baca buat "paham cerita lengkap": `README.md` → `business-plan.md` → `PROGRESS.md` → `decisions-log.md` → `10-`/`11-` (data architecture) → `feature-specs.md` → `31-frontend-nextjs.md`/`design-system.md` — sekitar 7-8 file, bukan 25.
 - Verifikasi: `tsc --noEmit` bersih, `next build` sukses (14 route, nggak berubah — sesi ini pure dokumentasi, nggak nyentuh kode app).
 - Di-commit (`dd97ab4`, "Consolidate docs: merge 9 feature specs into one, archive plan transcripts, real README") dan di-push ke `origin/main`.
+
+**Lanjut sesi keduabelas — deployment readiness (dipicu pertanyaan user: project ini bakal di-share ke penilai, jadi perlu di-deploy — apakah setup Firebase/Firestore-nya aman?):**
+- **Temuan penting:** `.env.local` ternyata **sudah** terisi config Firebase asli (project udah di-provision user sendiri) — ini kontradiksi sama catatan `CLAUDE.md`/dokumentasi sebelumnya yang bilang "belum dibuat". Dokumentasi soal ini sekarang stale, dicatat di sini biar next session tau kalau ada project Firebase asli yang beneran hidup.
+- **Gap keamanan nyata ditemukan:** nggak ada `firestore.rules`/`firebase.json`/`.firebaserc` di repo, Firebase CLI juga nggak ke-install — artinya Firestore masih jalan di default apa pun yang di-assign pas project dibuat (test-mode terbuka, atau locked/deny-all — nggak bisa dicek dari sini, butuh login Firebase Console). Karena `NEXT_PUBLIC_FIREBASE_*` **bukan secret** (ter-embed di JS bundle publik by design), kalau rules masih terbuka, siapa aja yang buka situsnya bisa baca/tulis/hapus semua data Firestore.
+- **Fix:** `firestore.rules` baru ditulis di root repo — `users/{uid}` cuma bisa diakses pemiliknya sendiri, `businesses/{businessId}` cuma bisa diakses `ownerId`-nya (cocok sama query `where ownerId==uid` yang udah ada di kode). **User perlu publish manual ke Firebase Console** (Firestore → Rules tab) — ini di luar hal yang bisa dikerjain agent (butuh login Firebase user sendiri).
+- **Deployment target dipilih: Vercel.** `next.config.mjs` masih default (bukan `output: 'export'`), jadi Route Handler `/api/platform-metrics` compatible zero-config sebagai serverless function — nggak perlu ubah config Next.js apapun. Dikasih langkah lengkap (login, deploy, set 6 env var Firebase, redeploy) — semua butuh login Vercel user sendiri, belum ada konfirmasi udah dijalanin atau belum.
+- **Gotcha yang di-flag ke user:** begitu deploy ke Vercel, domain-nya (`*.vercel.app`) harus ditambahin manual ke Firebase Console → Authentication → Settings → Authorized domains, atau sign-in bakal gagal dengan `auth/unauthorized-domain` — kelihatan seperti bug padahal cuma settingan yang kelewat.
+- **Koreksi terpisah:** `business-plan.md` §7 & "Urutan build" masih nyebut infra "monorepo" — dikoreksi jadi "single Next.js app repo + Firebase", karena emang cuma 1 `package.json`/1 app, bukan beberapa package/workspace yang dikelola bareng (niat awal, nggak pernah kejadian secara struktural — pola drift yang sama kayak temuan `docs/` sebelumnya).
+- **Belum diverifikasi:** apakah user udah publish rules ke Console, apakah udah run `npx vercel`/set env var/deploy, apakah domain Vercel udah ditambahin ke Authorized Domains. **Kalau lanjut sesi berikutnya, tanya status 3 hal ini duluan.**
+- Di-commit (`b9f4eaa`, "Add Firestore security rules, correct stale monorepo framing") dan di-push ke `origin/main`.
 
 **Sesi kesebelas (2026-08-04) — wiring logic beneran Part A: Firebase Auth + Firestore, 8 task dari `plans/plan-2026-08-04-data-layer-wiring.md`, dieksekusi inline (TDD ketat tiap task):**
 - **Kenapa sekarang:** user mikirin gimana jawab keterbatasan "gak bisa akses API real TikTok/Meta buat assessment" — brainstorm → spec baru `09-data-layer-wiring.md` (3 kelas data: real API/Firebase, simulasi-via-API-layer, full mock) → plan eksekusi `plans/plan-2026-08-04-data-layer-wiring.md` (Part A doang, Part B/route-handler-mock-ads-data didefer jadi plan terpisah) → `decisions-log.md` baru dibikin (catatan keputusan teknis per-topik buat bahan presentasi, terpisah dari `PROGRESS.md` yang kronologis).
@@ -140,11 +150,12 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - Semua verifikasi: `tsc --noEmit` bersih, `npm run test` 51/51 tetap lolos (nggak ada test baru ditulis untuk kerjaan ini — murni wiring UI + 1 halaman baru, dianggap cukup di-cover manual smoke test SSR + regression test suite yang ada, konsisten sama arahan "jangan terlalu heavy"), `next build` sukses (12 route ke-generate).
 
 **Yang tersisa:**
-1. **Wiring logic Part A (Firebase Auth + Firestore) — SELESAI sesi kesebelas.** Firestore security rules belum ditulis (masih default/test-mode kalau project Firebase-nya baru dibuat — developer perlu set sendiri sebelum deploy beneran, di luar scope agent).
+1. **Wiring logic Part A (Firebase Auth + Firestore) — SELESAI sesi kesebelas.** `firestore.rules` udah ditulis (sesi keduabelas) tapi **belum di-publish ke Firebase Console** — user perlu lakuin manual (butuh login sendiri, di luar scope agent).
 2. **Wiring logic Part B — SELESAI sesi kesebelas (slice KPI/PLATFORM_RAW + AI Insight live-anomaly), dan full-migrasi sisa mock data (Campaign/Creative/Trend chart) SELESAI sesi keduabelas.** Semua data dashboard sekarang scoped per `businessId` lewat `/api/platform-metrics`.
 3. Write-up assessment (Phase 4) — dokumentasi/presentasi proses kerja buat interview, belum mulai sama sekali. `decisions-log.md` (baru, sesi kesebelas) udah nyiapin sebagian bahan ini (keputusan teknis per-topik + alasan).
+4. **Deployment ke Vercel (baru, sesi keduabelas) — belum dijalanin.** Butuh user run `npx vercel login` + `npx vercel` + set 6 env var Firebase + tambahin domain Vercel ke Firebase Authorized Domains. Langkah lengkap ada di percakapan sesi ini, belum ditulis ke doc terpisah.
 
-**Kalau user minta lanjut lagi**, tanya dulu: mau full-migrasi sisa mock data (Campaign/Creative/Trend) ke Part B, atau masih ada yang lain.
+**Kalau user minta lanjut lagi**, tanya dulu status 3 hal: (a) `firestore.rules` udah di-publish ke Console belum, (b) udah deploy ke Vercel belum, (c) domain Vercel udah ditambahin ke Authorized Domains belum — baru lanjut dari situ.
 
 **Standing instruction dari user:** update file ini (`PROGRESS.md`) setiap kali ada task/plan yang selesai — dipakai buat presentasi assessment Sr. FE Dev user. Lihat memory `feedback-progress-hub-updates`.
 
@@ -217,7 +228,7 @@ Semua plan Phase 0/1 ada di `plans/plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `su
 - `npx shadcn@latest` **JANGAN dipakai** — generate kode Tailwind v4 yang bikin build gagal di project ini (Tailwind v3). Selalu pakai `npx shadcn@2 add <component>`, lalu cek `tailwind.config.ts`/`globals.css` nggak ke-duplikat/ke-timpa. Detail lengkap + prosedur di `31-frontend-nextjs.md` bagian "Adding new shadcn/ui components".
 - Tailwind v3 default scale nggak punya key `4.5`/`6.5`/`7.5`/`15` (yang ada cuma `0.5`/`1.5`/`2.5`/`3.5` di antara integer) — kalau nulis kode baru dengan class kayak `p-4.5` atau `size-6.5`, itu bakal di-drop diam-diam oleh Tailwind. Sudah beberapa kali ketemu & di-substitute ke key valid terdekat di plan-plan sebelumnya.
 - `tsconfig.json` udah ada `"types": ["vitest/globals"]` (ditambahin pas UI Slice 1 Task 2) — jangan dihapus, itu yang bikin `test`/`expect` ke-recognize TypeScript di file test tanpa import manual.
-- Firebase project asli **belum dibuat** — kalau mau lanjut ke wiring logic beneran, user perlu jalanin `firebase login` (interaktif, pakai `! firebase login` di prompt) dan bikin project dulu, baru isi `.env.local` (template ada di `lensa-app/.env.local.example`).
+- **Koreksi (sesi keduabelas): Firebase project asli SUDAH dibuat** — `.env.local` udah terisi config asli (bukan placeholder), ditemukan pas ngecek deployment readiness. Baris ini sebelumnya bilang "belum dibuat", itu udah stale. Yang masih beneran gap: `firestore.rules` (udah ditulis di repo, sesi keduabelas) belum di-publish ke Firebase Console, dan belum jelas provider Email/Password di Authentication udah enabled atau belum — user perlu cek manual, di luar akses agent.
 
 ## Cara Update File Ini
 
