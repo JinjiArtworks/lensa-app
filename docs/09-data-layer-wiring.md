@@ -1,9 +1,9 @@
 # Fitur: Data Layer Wiring (Real API vs Mock Boundary)
 
-> **Konteks:** semua fitur (00-08) sejauh ini di-build di atas mock data statis — belum ada Firebase Auth/Firestore beneran yang jalan (client SDK di `src/lib/firebase/client.ts` sudah ada tapi belum dipakai; `sign-in/page.tsx` masih `setTimeout` palsu, belum ada halaman sign-up). Ini milestone "wiring logic beneran" yang dicatat sebagai pending di `PROGRESS.md`. Dipicu oleh pertanyaan: platform ads (Meta/TikTok) API-nya nggak bisa diakses beneran (restriction), jadi perlu keputusan eksplisit — bagian mana yang di-wire ke API asli, bagian mana yang tetap mock tapi disajikan lewat arsitektur yang meyakinkan.
+> **Konteks:** semua fitur (00-08, sekarang digabung di `feature-specs.md`) sejauh ini di-build di atas mock data statis — belum ada Firebase Auth/Firestore beneran yang jalan (client SDK di `src/lib/firebase/client.ts` sudah ada tapi belum dipakai; `sign-in/page.tsx` masih `setTimeout` palsu, belum ada halaman sign-up). Ini milestone "wiring logic beneran" yang dicatat sebagai pending di `PROGRESS.md`. Dipicu oleh pertanyaan: platform ads (Meta/TikTok) API-nya nggak bisa diakses beneran (restriction), jadi perlu keputusan eksplisit — bagian mana yang di-wire ke API asli, bagian mana yang tetap mock tapi disajikan lewat arsitektur yang meyakinkan.
 
 ## Tujuan
-Definisikan dengan jelas 3 kelas data di seluruh app, supaya nggak ambigu waktu eksekusi nanti: (A) real API (Firebase Auth + Firestore), (B) simulasi tapi disajikan lewat API layer (Route Handler/Server Action + TanStack Query), (C) tetap mock client murni. Dokumen ini adalah spec/keputusan arsitektur, bukan implementasi — jangan mulai coding dari file ini tanpa plan file terpisah (lihat `implementation-phases.md` / pola `plan-YYYY-MM-DD-*.md`).
+Definisikan dengan jelas 3 kelas data di seluruh app, supaya nggak ambigu waktu eksekusi nanti: (A) real API (Firebase Auth + Firestore), (B) simulasi tapi disajikan lewat API layer (Route Handler/Server Action + TanStack Query), (C) tetap mock client murni. Dokumen ini adalah spec/keputusan arsitektur, bukan implementasi — jangan mulai coding dari file ini tanpa plan file terpisah (lihat `PROGRESS.md` / pola `plans/plan-YYYY-MM-DD-*.md`).
 
 ## A. Real API — Firebase Auth + Firestore
 
@@ -14,7 +14,7 @@ Definisikan dengan jelas 3 kelas data di seluruh app, supaya nggak ambigu waktu 
 5. **Route guard** — client-side check di `(dashboard)/layout.tsx`: belum login → redirect `/sign-in`. Sudah login tapi buka `/sign-in` → redirect ke dashboard. (Keputusan: client-side guard cukup untuk scope assessment ini — bukan middleware + Firebase session cookie + Admin SDK, itu overbuild untuk prototype single-review-cycle.)
 6. **Connect Platform** — handshake OAuth ke Meta/TikTok **tetap simulasi** (nggak ada akses API asli — inilah restriction yang dimaksud). Tapi hasil status connect-nya ditulis ke Firestore (`businesses/{id}.connectedPlatforms`) beneran — survive refresh/reload, beda dari kondisi sekarang yang cuma local state React yang hilang begitu reload.
 7. **Business Switcher** — baca list bisnis milik user dari Firestore query (`businesses` where `ownerId == uid`), bukan array statis di `mock-data.ts`.
-8. Token **tidak** disimpan manual di localStorage — Firebase SDK yang urus persistence-nya sendiri (IndexedDB), sesuai golden rule di `00-auth-flow.md` poin 5.
+8. Token **tidak** disimpan manual di localStorage — Firebase SDK yang urus persistence-nya sendiri (IndexedDB), sesuai golden rule di `feature-specs.md` §00 poin 5.
 
 ## B. Simulasi via API Layer — Route Handler/Server Action + TanStack Query
 
@@ -24,7 +24,7 @@ Ini jawaban langsung untuk keterbatasan akses API TikTok/Meta: data tetap mock, 
 2. FE fetch lewat `useQuery` (folder `features/<feature>/api/`, sesuai konvensi `31-frontend-nextjs.md`), query key `["platform-metrics", businessId, platformId, dateRange]`.
 3. **AI Insight** (`insight-matcher.ts` logic) — dibungkus jadi endpoint/Server Action sendiri. Tombol "Sync & Analisis Ulang" jadi `useMutation` beneran, bukan `setTimeout` lokal. Logic pencocokan kondisi tetap deterministik/template-based sesuai keputusan `business-plan.md` §9 — **bukan** live AI generation, cuma pindah eksekusinya ke server-side call.
 4. Kontrak (request/response shape) didesain supaya swap ke integrasi asli nanti = ganti isi handler doang, nggak nyentuh kode FE. Ini poin penting untuk narasi assessment: keterbatasan akses API dijawab dengan arsitektur yang siap-swap, bukan ditinggal sebagai hardcoded mock permanen.
-5. **Data di-scope per `businessId`** (bukan 1 dataset statis global kayak sekarang) — generator di handler deterministik-seeded dari `businessId` (mis. seeded PRNG, bukan `Math.random()` murni, supaya angka konsisten tiap request untuk bisnis yang sama tapi beda antar bisnis). Ditemukan sebagai gap nyata setelah Part A (`plan-2026-08-04-data-layer-wiring.md`) bikin Business Switcher Firestore-backed: tanpa ini, ganti bisnis di switcher nggak mengubah angka apapun di Overview/Detail Platform/AI Insight — keliatan seperti bug ("kok datanya sama aja"). **Keputusan: tidak disimpan ke Firestore** (supaya tetap jelas ini data yang didesain fake, bukan diam-diam jadi terasa seperti model data backend asli, sesuai `business-plan.md` §9) — cukup di-generate ulang tiap request dari seed.
+5. **Data di-scope per `businessId`** (bukan 1 dataset statis global kayak sekarang) — generator di handler deterministik-seeded dari `businessId` (mis. seeded PRNG, bukan `Math.random()` murni, supaya angka konsisten tiap request untuk bisnis yang sama tapi beda antar bisnis). Ditemukan sebagai gap nyata setelah Part A (`plans/plan-2026-08-04-data-layer-wiring.md`) bikin Business Switcher Firestore-backed: tanpa ini, ganti bisnis di switcher nggak mengubah angka apapun di Overview/Detail Platform/AI Insight — keliatan seperti bug ("kok datanya sama aja"). **Keputusan: tidak disimpan ke Firestore** (supaya tetap jelas ini data yang didesain fake, bukan diam-diam jadi terasa seperti model data backend asli, sesuai `business-plan.md` §9) — cukup di-generate ulang tiap request dari seed.
 
 ## C. Tetap Mock Client Murni (tanpa roundtrip apapun)
 
@@ -39,7 +39,7 @@ Ini jawaban langsung untuk keterbatasan akses API TikTok/Meta: data tetap mock, 
 
 ## Error Handling
 
-- Firebase Auth error code di-map ke pesan ramah bahasa Indonesia lewat util kecil (`mapFirebaseAuthError` atau sejenis) — jangan tampilkan raw `error.code`/`error.message` dari Firebase, sesuai `00-auth-flow.md`.
+- Firebase Auth error code di-map ke pesan ramah bahasa Indonesia lewat util kecil (`mapFirebaseAuthError` atau sejenis) — jangan tampilkan raw `error.code`/`error.message` dari Firebase, sesuai `feature-specs.md` §00.
 - Route Handler (bagian B) gagal/timeout → TanStack Query error state → reuse toast system yang sudah ada (`stores/ui.ts` + `components/ui/toaster.tsx`) + tombol retry, bukan silent fail.
 
 ## Checklist Selesai

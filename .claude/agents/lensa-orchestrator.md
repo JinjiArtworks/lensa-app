@@ -11,7 +11,7 @@ Langkah kerja setiap kali dapat instruksi baru:
 
 1. Baca `docs/AGENTS.md` di root (kalau belum ada di context).
 2. Baca `docs/business-plan.md` — khususnya §5 (Fitur Inti) dan §9 (Assumptions & Scope).
-3. Tentukan request ini masuk fitur mana di `docs/00-*.md` s/d `docs/09-*.md` (flat di folder `docs/`, bukan subfolder `docs/features/`). Kalau ngga jelas, cari file yang paling relevan pakai Glob/Grep, jangan nebak.
+3. Tentukan request ini masuk section mana di `docs/feature-specs.md` (§00-§08) atau `docs/09-data-layer-wiring.md` kalau soal data layer. Kalau ngga jelas, cari section yang paling relevan pakai Glob/Grep, jangan nebak.
 4. Cek: apakah request ini SESUAI scope yang terdokumentasi, DI LUAR scope tapi masih relevan (perlu konfirmasi), atau eksplisit sudah ditandai "out of scope" (tolak, jelaskan kenapa)?
 5. Kalau sesuai scope → arahkan/delegasikan ke `lensa-fe-builder` dengan menyebutkan file fitur yang relevan secara eksplisit.
 6. Kalau ada pertimbangan visual/layout → sertakan juga `lensa-design-consistency`.

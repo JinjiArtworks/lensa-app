@@ -6,14 +6,15 @@ Omni-channel ads performance dashboard (Meta Ads + TikTok Ads) with AI-generated
 
 The PRD, phase roadmap, per-feature specs, and decisions log live in `docs/` (moved into this repo 2026-08-05 — previously an untracked sibling directory called `standards/`, see `docs/PROGRESS.md`'s session log for that history). Read in this order before starting work:
 
-1. `docs/PROGRESS.md` — progress hub, chronological by session. Has a "resume here" section at the top — read this first when picking up work.
-2. `docs/implementation-phases.md` — phase-level roadmap/checklist.
-3. `docs/business-plan.md` — PRD equivalent: positioning, target user, business model, §5 in-scope features, §9 explicit out-of-scope decisions.
-4. `docs/decisions-log.md` — non-obvious technical decisions, organized by topic (why X not Y, trade-offs accepted).
-5. `docs/00-*.md` … `docs/09-*.md` — per-feature specs. Only read the one relevant to the current task.
+1. `docs/PROGRESS.md` — progress hub, chronological by session. Has a "resume here" section at the top (plus a condensed phase roadmap right below it — this absorbed the old standalone `implementation-phases.md`, deleted 2026-08-05) — read this first when picking up work.
+2. `docs/business-plan.md` — PRD equivalent: positioning, target user, business model, §5 in-scope features, §9 explicit out-of-scope decisions.
+3. `docs/decisions-log.md` — non-obvious technical decisions, organized by topic (why X not Y, trade-offs accepted).
+4. `docs/feature-specs.md` — per-feature specs, §00-§08 (merged from 9 separate tiny files into one 2026-08-05). Only read the section relevant to the current task — and note its checklists are original acceptance criteria, not live status; status always comes from `PROGRESS.md`.
+5. `docs/09-data-layer-wiring.md` — data-layer architecture spec, kept separate from `feature-specs.md` (thicker, newer).
 6. `docs/31-frontend-nextjs.md` — the FE conventions this file summarizes below.
 7. `docs/10-data-flow-reference.md` / `docs/11-firebase-firestore-guide.md` — as-built data architecture (Firebase vs mock ads-metrics domains) and a from-scratch Firestore primer.
-8. `docs/AGENTS.md` — subagent scope-alignment rules. Also documents which parts of the original plan (a `docs/features/` subfolder) were never actually realized — check it before trusting an old cross-reference at face value.
+8. `docs/AGENTS.md` — subagent scope-alignment rules. Also documents drift between the original plan and what was actually built — check it before trusting an old cross-reference at face value.
+9. `docs/plans/` — archived TDD execution transcripts per build session, one per plan file. Appendix-level detail, not needed to understand the project's story — `PROGRESS.md` already narrates what each one did at a readable level.
 
 **Before building or changing anything, check it's actually in scope** (`business-plan.md` §5/§9). If a request looks like it's building something explicitly marked out-of-scope (team permissions, functional payment gateway, ticket/support system, platform Compare mode), stop and confirm with the user first instead of building it.
 

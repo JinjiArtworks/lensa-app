@@ -2,6 +2,14 @@
 
 > Satu-satunya tempat buat cek "kita udah sampe mana". Update file ini tiap kali sebuah plan file selesai dieksekusi (semua task-nya approved). Kalau resume kerjaan di sesi baru / abis context reset, baca file ini duluan sebelum baca apapun lain.
 
+## Roadmap Phase (ringkas)
+
+> Dilebur dari `implementation-phases.md` (dihapus 2026-08-05, kontennya duplikat sama tabel di bawah + drift dari status asli — satu sumber status aja biar nggak dua file yang bisa beda cerita).
+
+Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 fitur inti: Connect Platform, Business Switcher, Overview, Detail Platform) → **Phase 2** (AI Layer — AI Insight Panel + Export) → **Phase 3** (Monetization — Billing/Paket) → **Phase 4** (Polish & Write-up). Prinsip: tiap phase harus **"demo-able" dulu** sebelum lanjut ke phase berikutnya — jangan loncat phase walau kepengen cepat. Kalau nemu ide fitur baru yang nggak ada di `business-plan.md`, jangan langsung build — cek relevansi ke `AGENTS.md` §1 dulu, baru putuskan.
+
+**Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
+
 **Last updated:** 2026-08-05 (sesi keduabelas — polish landing page + `CLAUDE.md` + full-migrasi Campaign/Creative/Trend per-bisnis + 2 doc baru (data flow, Firestore guide) + `docs/` ini sendiri dipindah masuk ke repo + 4 subagent diaktifkan)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
@@ -37,8 +45,8 @@
 - **Sekarang semua data dashboard (KPI, Campaign table, Creative list, Trend chart) udah scoped per-bisnis** — Business Switcher ngefek ke semuanya, nggak cuma KPI lagi. Ini menutup catatan "belum di-fix" yang tersisa dari Part B sesi kesebelas.
 - Di-commit (`d7b2379`, "Scope Campaign table, Creative list, and Trend charts per business") dan di-push ke `origin/main`.
 
-**Sesi kesebelas (2026-08-04) — wiring logic beneran Part A: Firebase Auth + Firestore, 8 task dari `plan-2026-08-04-data-layer-wiring.md`, dieksekusi inline (TDD ketat tiap task):**
-- **Kenapa sekarang:** user mikirin gimana jawab keterbatasan "gak bisa akses API real TikTok/Meta buat assessment" — brainstorm → spec baru `09-data-layer-wiring.md` (3 kelas data: real API/Firebase, simulasi-via-API-layer, full mock) → plan eksekusi `plan-2026-08-04-data-layer-wiring.md` (Part A doang, Part B/route-handler-mock-ads-data didefer jadi plan terpisah) → `decisions-log.md` baru dibikin (catatan keputusan teknis per-topik buat bahan presentasi, terpisah dari `PROGRESS.md` yang kronologis).
+**Sesi kesebelas (2026-08-04) — wiring logic beneran Part A: Firebase Auth + Firestore, 8 task dari `plans/plan-2026-08-04-data-layer-wiring.md`, dieksekusi inline (TDD ketat tiap task):**
+- **Kenapa sekarang:** user mikirin gimana jawab keterbatasan "gak bisa akses API real TikTok/Meta buat assessment" — brainstorm → spec baru `09-data-layer-wiring.md` (3 kelas data: real API/Firebase, simulasi-via-API-layer, full mock) → plan eksekusi `plans/plan-2026-08-04-data-layer-wiring.md` (Part A doang, Part B/route-handler-mock-ads-data didefer jadi plan terpisah) → `decisions-log.md` baru dibikin (catatan keputusan teknis per-topik buat bahan presentasi, terpisah dari `PROGRESS.md` yang kronologis).
 - **Task 1-3 (foundation):** `getFirestoreDb()` + shared types (`UserProfileDoc`/`BusinessDoc`) di `lib/firebase/`, `mapFirebaseAuthError()` (map error code Firebase ke pesan Indonesia ramah), `features/auth/firestore.ts` (`createUserProfile`, `createDefaultBusiness`).
 - **Task 4 — Sign Up (halaman baru, sebelumnya sama sekali gak ada):** form nama/email/password/konfirmasi (Zod), `createUserWithEmailAndPassword` → Firestore user+business doc → `setActiveBusinessId` → redirect `/onboarding`.
 - **Task 5 — Sign In (full replace dari mock):** sebelumnya `defaultValue` hardcoded + `setTimeout` palsu, sekarang `signInWithEmailAndPassword` beneran + query Firestore business milik user buat redirect logic (`/overview` kalau udah ada platform connected, `/onboarding` kalau belum) + mode "Lupa password?" (`sendPasswordResetEmail`).
@@ -79,13 +87,13 @@
 - **Belum di-push ke remote** — repo belum ada remote/GitHub yang di-setup (user bilang "belum integrated"), semua kerjaan masih commit lokal aja di `main`.
 
 **Sesi kesembilan (2026-08-03) — landing page full redesign, dari draft Artifact ke Next.js beneran:**
-- **Proses:** desain di-iterasi dulu di Claude Artifact (brainstorming → 1 file HTML/CSS/JS self-contained, font Bricolage Grotesque + Inter di-embed sebagai data URI) — beberapa ronde revisi (copy jadi "professional tapi santai", chart CPA-only diperluas jadi multi-KPI ROAS/CPA/CTR/Closing, FAQ dipindah ke tengah halaman, pricing dapet toggle Bulanan/Tahunan) — baru setelah disetujui, ditulis jadi `plan-2026-08-03-landing-redesign.md` (16 task) dan di-porting ke kode.
+- **Proses:** desain di-iterasi dulu di Claude Artifact (brainstorming → 1 file HTML/CSS/JS self-contained, font Bricolage Grotesque + Inter di-embed sebagai data URI) — beberapa ronde revisi (copy jadi "professional tapi santai", chart CPA-only diperluas jadi multi-KPI ROAS/CPA/CTR/Closing, FAQ dipindah ke tengah halaman, pricing dapet toggle Bulanan/Tahunan) — baru setelah disetujui, ditulis jadi `plans/plan-2026-08-03-landing-redesign.md` (16 task) dan di-porting ke kode.
 - **Ditemukan pas mau commit:** repo ini ternyata cuma punya 1 commit history ("Initial commit from Create Next App") — seluruh kerjaan sesi 1-8 (~9000 baris) belum pernah ke-commit, cuma numpuk di working tree. Di-commit dulu sebagai 1 checkpoint terpisah sebelum mulai kerjaan landing redesign, biar history-nya jelas ada baseline-nya.
 - **Eksekusi plan:** mulai pakai TDD ketat (test dulu, verify fail, implement, verify pass) buat 3 task pertama (Reveal wrapper, mock-data, computeTrendDelta) — lalu atas permintaan user, sisanya (Task 4-16) di-eksekusi langsung tanpa nulis test baru per komponen, fokus ke implementasi cepat + clean code, verifikasi cukup lewat `tsc`/`vitest run` (suite lama)/`next build`/smoke test SSR.
 - **Komponen baru** (`features/landing/components/`): `Nav`, `Hero` + `HeroMockup` (tab Meta/TikTok dengan angka KPI animasi tween, bukan cuma crossfade), `ProblemSection`, `HowItWorks`, `FeaturesGrid`, `FaqSection` (native `<details>`, posisi di tengah alur halaman), `AiInsightSpotlight` (reuse `InsightCard` asli dari fitur AI Insight + `getInsightsForPeriod`, bukan duplikasi markup), `StatsSection` (count-up), `TrendChartSection` (4 tab metrik pakai `recharts` `AreaChart`, pola toggle yang sama kayak `TrendChart`/`ChannelChart` di Overview), `TestimonialsSection` (rating bintang + angka hasil), `PricingSection` (comparison table + toggle Bulanan/Tahunan).
 - **Dependency yang akhirnya kepake:** `framer-motion` dan `recharts` — dua-duanya udah lama ada di `package.json` tapi belum pernah dipakai di komponen manapun sebelum ini.
 - **Dibuang:** `FREE_FEATURES`/`PRO_FEATURES` (diganti `PRICING_ROWS` buat comparison table), `src/app/__tests__/page.test.tsx` lama (markup-nya udah nggak ada lagi).
-- **Belum ada test baru** buat 13 komponen landing yang baru (di luar `Reveal` + `mock-data` + `computeTrendDelta` yang sempet ke-TDD di awal) — sengaja di-skip sesi ini atas permintaan user buat prioritasin implementasi, user mau review manual dulu. **Kalau lanjut nanti:** pertimbangkan nambah test coverage buat komponen-komponen ini sebelum dianggap "selesai" beneran (pola test sudah ada di `plan-2026-08-03-landing-redesign.md` per komponen kalau mau dipakai lagi).
+- **Belum ada test baru** buat 13 komponen landing yang baru (di luar `Reveal` + `mock-data` + `computeTrendDelta` yang sempet ke-TDD di awal) — sengaja di-skip sesi ini atas permintaan user buat prioritasin implementasi, user mau review manual dulu. **Kalau lanjut nanti:** pertimbangkan nambah test coverage buat komponen-komponen ini sebelum dianggap "selesai" beneran (pola test sudah ada di `plans/plan-2026-08-03-landing-redesign.md` per komponen kalau mau dipakai lagi).
 - Verifikasi yang beneran jalan: `tsc --noEmit` bersih, suite lama tetap 78/78 lolos, `next build` sukses (9 route, `/` sekarang 65.9kB/294kB First Load JS — naik dari sebelumnya karena narik `recharts`+`framer-motion`), smoke test SSR (`curl` ke `/` pas `next dev`) konfirmasi semua 10 section headline render tanpa error runtime.
 
 **Sesi kedelapan (2026-08-03) — audit code + visual landing page publik (`/`), dikerjain langsung tanpa subagent (lightweight execution), atas permintaan user "improve apa yang perlu di-improve":**
@@ -110,7 +118,7 @@
 - Kartu anomali #1 periode "Kemarin" **live** — dituntun dari `shouldShowProactiveAlert(PLATFORMS)` yang sama dipakai `ProactiveAlertCard` di Overview (satu sumber logic, bukan duplikasi angka) — checklist poin "dipakai juga di Proactive Alert Card" terpenuhi tanpa refactor file yang sudah lolos test sebelumnya.
 - Layout: stats row, banner perbandingan periode, panel "Rekomendasi Prioritas" (reuse pola `brec-row`), toolbar (select periode + select platform + chip kategori), grid 2 kolom kartu (icon badge, 3 tag, impact note, feedback 👍/👎 icon-only), tombol Sync & Analisis Ulang (loading ~1.5s → update timestamp + toast).
 - 13 test baru (`insight-matcher.test.ts` + `insight/page.test.tsx`), semua lolos. `tsc --noEmit` bersih, `next build` sukses (9 route: `/`, `/sign-in`, `/onboarding`, `/overview`, `/detail`, `/billing`, `/settings`, `/connect-platform`, `/insight`).
-- **Sengaja tidak diporting:** panel "Benchmark Industri" & "Rekomendasi Alokasi Budget" yang ada di mockup HTML — tidak disebut di checklist `05-ai-insight-panel.md` maupun `business-plan.md`, jadi di luar scope task ini (asumsi diambil biar tidak overbuild, bisa dikerjain terpisah kalau diminta).
+- **Sengaja tidak diporting:** panel "Benchmark Industri" & "Rekomendasi Alokasi Budget" yang ada di mockup HTML — tidak disebut di checklist `feature-specs.md` §05 maupun `business-plan.md`, jadi di luar scope task ini (asumsi diambil biar tidak overbuild, bisa dikerjain terpisah kalau diminta).
 
 **Sesi keempat (2026-08-01, malam) — dikerjain langsung tanpa subagent (lightweight execution, atas permintaan user):**
 - **Toast/notification system** dibangun dari nol (`stores/ui.ts` + `components/ui/toaster.tsx`, mounted sekali di root layout) — sebelumnya sama sekali nggak ada.
@@ -141,8 +149,8 @@
 |---|---|
 | Phase 0 — Foundation | 🔶 4/5 item (Firebase project asli & auth flow masih partial) |
 | Phase 1 — Core Dashboard | ✅ **UI porting selesai semua** (Sign In, Onboarding, Overview, Business Switcher, Detail Platform, Billing, Settings, Connect Platform) — logic/data wiring masih mock, belum Firebase |
-| Phase 2 — AI Layer | ✅ **AI Insight (`/insight`) selesai** — logic/data masih mock/template (sesuai keputusan sadar di `05-ai-insight-panel.md`) |
-| Phase 3 — Monetization | 🔶 Billing (bagian dari `08-pricing-page.md`) selesai UI-nya + landing page publik (`/`) dengan pricing section & mock checkout |
+| Phase 2 — AI Layer | ✅ **AI Insight (`/insight`) selesai** — logic/data masih mock/template (sesuai keputusan sadar di `feature-specs.md` §05) |
+| Phase 3 — Monetization | 🔶 Billing (bagian dari `feature-specs.md` §08) selesai UI-nya + landing page publik (`/`) dengan pricing section & mock checkout |
 | Phase 4 — Polish & Write-up | 🔶 **Gap-fix pass selesai**: toast system, semua tombol dekoratif ke-wire, Sync, Copy as Report, + polish landing page (mobile nav/footer, 2 halaman legal) — sisanya (write-up assessment) belum mulai |
 
 ## 📊 Angka akhir Phase 1 UI-slicing
@@ -154,17 +162,17 @@
 
 ## Plan Files & Statusnya
 
-Semua plan Phase 0/1 ada di `plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `superpowers:writing-plans`, dieksekusi pakai `superpowers:subagent-driven-development` (tiap task: implementer subagent → task reviewer subagent independen → fix kalau ada temuan). **AI Insight (sesi kelima) tidak punya plan file** — dikerjain langsung tanpa ritual plan/subagent atas permintaan eksplisit user ("gausah terlalu banyak pake skills, eksekusi langsung"), riset spek tetap dibaca dulu (`05-ai-insight-panel.md`, `design-system.md`, mockup HTML) sebelum nulis kode.
+Semua plan Phase 0/1 ada di `plans/plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `superpowers:writing-plans`, dieksekusi pakai `superpowers:subagent-driven-development` (tiap task: implementer subagent → task reviewer subagent independen → fix kalau ada temuan). **AI Insight (sesi kelima) tidak punya plan file** — dikerjain langsung tanpa ritual plan/subagent atas permintaan eksplisit user ("gausah terlalu banyak pake skills, eksekusi langsung"), riset spek tetap dibaca dulu (`feature-specs.md` §05, `design-system.md`, mockup HTML) sebelum nulis kode.
 
 | Plan file | Cakupan | Status |
 |---|---|---|
-| `plan-2026-08-01-lensa-phase0.md` | Part A: fix 2 gap mockup HTML. Part B: scaffold Next.js 14 + Tailwind v3 + shadcn/ui + Firebase client + testing infra + folder convention (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-1.md` | App Shell (Sidebar/BusinessSwitcher/TopBar/NotifDropdown) + halaman Overview lengkap (KPI, target, alert, chart, table+modal) — UI-only, mock data lokal (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-2.md` | Halaman Sign In (awalnya di `/`, dipindah ke `/sign-in` sesi keempat pas landing page publik dibangun) + Onboarding (`/onboarding`), nyambung ke `/overview` — UI-only (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-3.md` | Halaman Detail Platform (`/detail`): switcher, KPI grid, trend chart, campaign table (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-4.md` | Halaman Billing (`/billing`): tab Ringkasan (plan+payment+invoice) + Paket Tersedia (Free/Pro) + modal Payment Gateway (confirm→processing→success) (3 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-5.md` | Halaman Settings (`/settings`): tab Team & Akses (+invite modal), Notifikasi (toggle), Keamanan (2FA+audit log) (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
-| `plan-2026-08-01-lensa-phase1-ui-slice-6.md` | Halaman Connect Platform dalam dashboard (`/connect-platform`): list platform + sync health + reconnect (1 task) | ✅ **Selesai**, step checked, task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase0.md` | Part A: fix 2 gap mockup HTML. Part B: scaffold Next.js 14 + Tailwind v3 + shadcn/ui + Firebase client + testing infra + folder convention (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-1.md` | App Shell (Sidebar/BusinessSwitcher/TopBar/NotifDropdown) + halaman Overview lengkap (KPI, target, alert, chart, table+modal) — UI-only, mock data lokal (5 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-2.md` | Halaman Sign In (awalnya di `/`, dipindah ke `/sign-in` sesi keempat pas landing page publik dibangun) + Onboarding (`/onboarding`), nyambung ke `/overview` — UI-only (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-3.md` | Halaman Detail Platform (`/detail`): switcher, KPI grid, trend chart, campaign table (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-4.md` | Halaman Billing (`/billing`): tab Ringkasan (plan+payment+invoice) + Paket Tersedia (Free/Pro) + modal Payment Gateway (confirm→processing→success) (3 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-5.md` | Halaman Settings (`/settings`): tab Team & Akses (+invite modal), Notifikasi (toggle), Keamanan (2FA+audit log) (2 task) | ✅ **Selesai semua**, semua step checked, semua task approved reviewer |
+| `plans/plan-2026-08-01-lensa-phase1-ui-slice-6.md` | Halaman Connect Platform dalam dashboard (`/connect-platform`): list platform + sync health + reconnect (1 task) | ✅ **Selesai**, step checked, task approved reviewer |
 
 **Belum ada plan file untuk:** AI Insight (di-skip atas permintaan user), dan seluruh wiring logic beneran (Firebase Auth, Firestore, real data layer).
 
@@ -205,5 +213,5 @@ Semua plan Phase 0/1 ada di `plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `superpow
 Tiap kali sebuah plan file selesai (semua task approved reviewer):
 1. Tambahin baris baru di tabel "Plan Files & Statusnya".
 2. Update "Route Map" kalau ada halaman baru yang jadi bisa diakses.
-3. Update "Ringkasan Cepat" & baris relevan di `implementation-phases.md`.
+3. Update "Ringkasan Cepat" & "Roadmap Phase (ringkas)" di atas kalau status phase berubah.
 4. Update tanggal "Last updated" di atas.

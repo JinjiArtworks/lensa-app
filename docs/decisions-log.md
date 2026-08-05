@@ -12,7 +12,7 @@ Format tiap entry: **Keputusan** → **Kenapa** → **Trade-off** → *Sumber* (
 **Keputusan:** Insight dihasilkan dari pencocokan kondisi data ke template tersimpan (deterministik), bukan generation dari LLM/AI API beneran.
 **Kenapa:** Fokus effort ke UX & data-modeling insight (kategori, impact, prioritas), bukan ke biaya/latency/reliability integrasi LLM asli — di luar scope waktu assessment.
 **Trade-off:** Insight nggak bisa "mikir" di luar skenario yang udah ditulis manual (36 template: 4 kategori × 3 periode). Cukup buat demo produk, nggak representasi kapabilitas AI generatif asli.
-*Sumber:* `business-plan.md` §9, `05-ai-insight-panel.md`.
+*Sumber:* `business-plan.md` §9, `feature-specs.md` §05.
 
 ### 1.2 Data ads (Meta/TikTok) = mock, bukan API platform asli
 **Keputusan:** Semua angka spend/ROAS/closing/dst dikarang (mock generator), bukan hasil fetch dari Meta Graph API / TikTok Business API.
@@ -58,7 +58,7 @@ Format tiap entry: **Keputusan** → **Kenapa** → **Trade-off** → *Sumber* (
 **Keputusan:** Proteksi route `(dashboard)` cukup via komponen client (`AuthGuard`) yang cek Zustand auth store, bukan Next.js middleware + Firebase Admin SDK + session cookie verification di server.
 **Kenapa:** Middleware+Admin SDK adalah pola yang tepat buat production app beneran (proteksi di-edge, sebelum HTML ke-render), tapi overbuild buat prototype assessment single-review-cycle — nambah kompleksitas (secret management server-side, cookie refresh) tanpa nambah sinyal skill yang relevan dinilai.
 **Trade-off:** Ada celah kecil: konten dashboard bisa sempat "ke-request" sebelum redirect client-side jalan (flash-of-protected-content minimal, karena `AuthGuard` return `null` saat belum resolve, bukan render anak). Nggak jadi masalah keamanan data karena data tetap difilter oleh Firestore security rules di server (bukan cuma proteksi UI).
-*Sumber:* `09-data-layer-wiring.md` §A.5, `plan-2026-08-04-data-layer-wiring.md` Task 6.
+*Sumber:* `09-data-layer-wiring.md` §A.5, `plans/plan-2026-08-04-data-layer-wiring.md` Task 6.
 
 ---
 
@@ -68,13 +68,13 @@ Format tiap entry: **Keputusan** → **Kenapa** → **Trade-off** → *Sumber* (
 **Keputusan:** `auth` store cuma nyimpen `User` object di memory; persistence antar-reload diserahin ke mekanisme internal Firebase SDK (IndexedDB), bukan `localStorage.setItem` manual.
 **Kenapa:** localStorage rentan XSS (script apapun di halaman bisa baca token) — golden rule keamanan dasar, bukan preferensi gaya kode.
 **Trade-off:** Nggak ada trade-off fungsional berarti — Firebase SDK udah handle refresh token secara otomatis, jadi ini murni upgrade keamanan tanpa ongkos UX.
-*Sumber:* `00-auth-flow.md` poin 5.
+*Sumber:* `feature-specs.md` §00 poin 5.
 
 ### 3.2 Firebase Auth + Firestore = real integration (bukan mock)
 **Keputusan:** Sign up/in/forgot-password dan data user/business/connected-platform status pakai Firebase SDK beneran, network call asli ke backend Google Cloud.
 **Kenapa:** Ini bagian yang genuinely bisa di-build tanpa terhalang restriction API pihak ketiga — jadi dijadiin real, bukan ikut di-mock kayak ads data, biar ada demo integrasi backend service yang beneran jalan.
 **Trade-off:** Butuh 1 project Firebase asli + `.env.local` terisi buat siapa pun yang mau jalanin dev server — nggak bisa "clone & run" tanpa setup akun Google dulu.
-*Sumber:* `09-data-layer-wiring.md` §A, `plan-2026-08-04-data-layer-wiring.md`.
+*Sumber:* `09-data-layer-wiring.md` §A, `plans/plan-2026-08-04-data-layer-wiring.md`.
 
 ### 3.3 Ads metrics & AI insight: mock disajikan lewat Route Handler + TanStack Query, bukan static import
 **Keputusan:** Generator mock dipindah ke server (`app/api/*/route.ts`), FE consume via `useQuery`/`useMutation` — bukan komponen import array statis langsung dari `mock-data.ts`.
