@@ -22,10 +22,9 @@ function buildLiveAnomalyItem(platforms: OverviewData["PLATFORMS"]): InsightItem
     title: "Spend naik, closing stagnan",
     body: `Spend ${alert.platformName} naik ${alert.spendPct}% dari kemarin tapi closing hampir tidak bergerak. Kemungkinan targeting terlalu luas atau creative mulai jenuh.`,
     time: "2 jam lalu",
-    actionLabel: "Lihat platform →",
-    actionHref: "/detail",
+    actionLabel: "Tandai sudah ditinjau",
     impact: "Tinggi",
-    impactNote: `Potensi spend terbuang tanpa closing tambahan minggu ini bila dibiarkan (spend naik ${alert.spendPct}%).`,
+    impactNote: `Coba persempit targeting atau ganti creative dalam 1-2 hari — berpotensi menghindari spend terbuang tanpa closing tambahan (spend naik ${alert.spendPct}%).`,
   };
 }
 

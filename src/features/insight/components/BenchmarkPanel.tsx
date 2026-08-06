@@ -3,7 +3,7 @@ import type { BenchmarkMetric } from "../types";
 
 export function BenchmarkPanel({ category, metrics }: { category: string; metrics: BenchmarkMetric[] }) {
   return (
-    <div className="rounded-2xl border border-line bg-card p-4">
+    <div className="rounded-2xl border border-line bg-card p-5">
       <h3 className="text-sm font-bold">Benchmark Industri</h3>
       <div className="mt-0.5 text-[11.5px] text-ink-3">Kategori: {category}</div>
       <div className="mt-3">

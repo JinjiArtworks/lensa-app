@@ -16,7 +16,6 @@ export interface InsightItem {
   impactNote: string;
   time: string;
   actionLabel: string;
-  actionHref?: string;
 }
 
 export interface PeriodInsightData {

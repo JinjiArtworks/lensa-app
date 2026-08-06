@@ -29,7 +29,7 @@ export function InsightGrid({
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="flex flex-col gap-4">
       {groups.map((group) =>
         isFree && group.category !== "positif" ? (
           <LockedCategorySection
@@ -39,7 +39,7 @@ export function InsightGrid({
             onUpgradeClick={onUpgradeClick}
           />
         ) : (
-          <div key={group.category} className="grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
+          <div key={group.category} className="grid grid-cols-2 gap-4 max-[980px]:grid-cols-1">
             {group.items.map((item) => (
               <InsightCard key={item.id} item={item} />
             ))}

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { AlertTriangle, Lightbulb, CheckCircle2, ThumbsUp, ThumbsDown } from "lucide-react";
+import { AlertTriangle, Lightbulb, CheckCircle2 } from "lucide-react";
 import { useUiStore } from "@/stores/ui";
 import type { InsightCategory, InsightItem } from "../types";
 
@@ -12,96 +10,68 @@ const CATEGORY_ICON: Record<InsightCategory, typeof AlertTriangle> = {
   positif: CheckCircle2,
 };
 
-const CATEGORY_LABEL: Record<InsightCategory, string> = {
-  anomali: "Anomali",
-  rekomendasi: "Rekomendasi",
-  positif: "Positif",
-};
-
 const CATEGORY_TONE: Record<InsightCategory, string> = {
   anomali: "bg-red-bg text-red",
   rekomendasi: "bg-accent-bg text-accent-text",
   positif: "bg-green-bg text-green",
 };
 
-const IMPACT_TONE: Record<InsightItem["impact"], string> = {
-  Tinggi: "bg-red-bg text-red",
-  Sedang: "bg-amber-bg text-amber",
-  Rendah: "bg-gray-bg text-ink-2",
+// Category is conveyed by icon + this left border (same principle as the
+// Overview Proactive Alert Card's border-left-4 treatment), not a separate
+// pill — one fewer badge to scan per card.
+const CATEGORY_BORDER: Record<InsightCategory, string> = {
+  anomali: "border-l-red",
+  rekomendasi: "border-l-accent",
+  positif: "border-l-green",
+};
+
+const IMPACT_DOT_TONE: Record<InsightItem["impact"], string> = {
+  Tinggi: "bg-red",
+  Sedang: "bg-amber",
+  Rendah: "bg-gray",
+};
+
+const IMPACT_TEXT_TONE: Record<InsightItem["impact"], string> = {
+  Tinggi: "text-red",
+  Sedang: "text-amber",
+  Rendah: "text-ink-3",
 };
 
 export function InsightCard({ item }: { item: InsightItem }) {
   const showToast = useUiStore((s) => s.showToast);
-  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const Icon = CATEGORY_ICON[item.category];
 
-  function handleFeedback(helpful: boolean) {
-    setFeedback(helpful ? "up" : "down");
-    showToast(helpful ? "Terima kasih atas feedback-nya!" : "Feedback dicatat — akan kami tingkatkan.");
-  }
-
   return (
-    <div className="flex flex-col gap-2.5 rounded-2xl border border-line bg-card p-4">
-      <div className="flex items-start gap-3">
-        <div className={`flex size-9 shrink-0 items-center justify-center rounded-[11px] ${CATEGORY_TONE[item.category]}`}>
-          <Icon className="size-[18px]" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex flex-wrap items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${CATEGORY_TONE[item.category]}`}>
-              {CATEGORY_LABEL[item.category]}
-            </span>
-            <span className="rounded-full bg-gray-bg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-2">
-              {item.platformLabel}
-            </span>
-            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${IMPACT_TONE[item.impact]}`}>
-              Impact: {item.impact}
-            </span>
+    <div
+      className={`flex flex-col gap-3 rounded-2xl border border-line border-l-4 bg-card p-5 ${CATEGORY_BORDER[item.category]}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] ${CATEGORY_TONE[item.category]}`}>
+            <Icon className="size-4" />
           </div>
-          <div className="text-[13.5px] font-bold">{item.title}</div>
+          <div className="min-w-0 text-[13.5px] font-bold leading-snug">{item.title}</div>
         </div>
+        <span className={`flex shrink-0 items-center gap-1.5 text-[11px] font-bold ${IMPACT_TEXT_TONE[item.impact]}`}>
+          <i className={`inline-block size-1.5 rounded-full ${IMPACT_DOT_TONE[item.impact]}`} />
+          {item.impact}
+        </span>
       </div>
-      <p className="text-xs leading-relaxed text-ink-2">{item.body}</p>
-      <div className="rounded-lg bg-accent-bg px-2.5 py-2 text-[11.5px] font-semibold leading-relaxed text-accent-text">
+      <p className="text-[12.5px] leading-relaxed text-ink-2">{item.body}</p>
+      <div className="rounded-lg bg-accent-bg px-3 py-2 text-[11.5px] font-semibold leading-relaxed text-accent-text">
         {item.impactNote}
       </div>
-      <div className="mt-0.5 flex items-center justify-between">
-        <span className="text-[11px] text-ink-3">{item.time}</span>
-        <div className="flex items-center gap-2.5">
-          {item.actionHref ? (
-            <Link href={item.actionHref} className="text-xs font-bold text-accent-text">
-              {item.actionLabel}
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className="text-xs font-bold text-accent-text"
-              onClick={() => showToast("Saran ditandai diterapkan")}
-            >
-              {item.actionLabel}
-            </button>
-          )}
-          <span className="flex items-center gap-1.5">
-            <button
-              type="button"
-              title="Membantu"
-              disabled={feedback !== null}
-              onClick={() => handleFeedback(true)}
-              className={`text-ink-3 ${feedback && feedback !== "up" ? "opacity-30" : ""}`}
-            >
-              <ThumbsUp className="size-[15px]" />
-            </button>
-            <button
-              type="button"
-              title="Tidak membantu"
-              disabled={feedback !== null}
-              onClick={() => handleFeedback(false)}
-              className={`text-ink-3 ${feedback && feedback !== "down" ? "opacity-30" : ""}`}
-            >
-              <ThumbsDown className="size-[15px]" />
-            </button>
-          </span>
-        </div>
+      <div className="mt-0.5 flex items-center justify-between gap-2 border-t border-line-2 pt-2.5">
+        <span className="text-[11px] text-ink-3">
+          {item.platformLabel} · {item.time}
+        </span>
+        <button
+          type="button"
+          className="text-xs font-bold text-accent-text"
+          onClick={() => showToast(item.actionLabel.replace(/^Tandai/, "Ditandai"))}
+        >
+          {item.actionLabel}
+        </button>
       </div>
     </div>
   );

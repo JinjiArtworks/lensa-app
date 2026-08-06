@@ -15,7 +15,7 @@ export function BudgetRecommendationPanel({ recommendations }: { recommendations
   const showToast = useUiStore((s) => s.showToast);
 
   return (
-    <div className="rounded-2xl border border-line bg-card p-4">
+    <div className="rounded-2xl border border-line bg-card p-5">
       <h3 className="text-sm font-bold">Rekomendasi Alokasi Budget</h3>
       <div className="mt-0.5 text-[11.5px] text-ink-3">Saran distribusi budget bulan depan dari AI.</div>
       <div className="mt-3">

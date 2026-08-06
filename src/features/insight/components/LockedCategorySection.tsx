@@ -3,7 +3,7 @@ import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import type { InsightCategory } from "../types";
 
 const META: Partial<Record<InsightCategory, { label: string; icon: typeof AlertTriangle; tone: string }>> = {
-  anomali: { label: "Anomali", icon: AlertTriangle, tone: "bg-red-bg text-red" },
+  anomali: { label: "Perlu Aksi", icon: AlertTriangle, tone: "bg-red-bg text-red" },
   rekomendasi: { label: "Rekomendasi", icon: Lightbulb, tone: "bg-accent-bg text-accent-text" },
 };
 

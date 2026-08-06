@@ -15,7 +15,7 @@
 ## Warna & Tipografi
 - **Base:** neutral terang (`--bg #f7f7f9`, `--card #fff`, `--line #e8e8ee`), teks `--ink #16161a` / `--ink2 #6b6b76` / `--ink3 #9d9da6`.
 - **Accent utama: amber/gold** (`--accent #f0b400`, `--accent-bg #fff6d6`, `--accent-text #8a6400`) — dipakai untuk semua state aktif (nav aktif, chip aktif, tombol primer, tab aktif, pagination aktif). *(Revisi dari draf sebelumnya yang sempat menetapkan ungu `#6d5ef0` — amber dipilih & dipakai konsisten sepanjang build mockup, jadi ini yang final sekarang.)* **Hindari kombinasi hitam solid untuk elemen aktif/interaktif** — prinsip ini tetap berlaku terlepas dari hue accent-nya.
-- **Warna semantik status:** hijau (`--green #0f9d5f`) = positif/aktif/selesai, amber (`--amber #c07d09`, beda shade dari accent) = perlu ditinjau/pending, merah (`--red #d23b3b`) = anomali/urgent/archived, abu (`--gray #8b8f99`) = netral/paused.
+- **Warna semantik status:** hijau (`--green #0f9d5f`) = positif/aktif/selesai, amber (`--amber #c07d09`, beda shade dari accent) = perlu ditinjau/pending, merah (`--red #d23b3b`) = perlu aksi/urgent/archived, abu (`--gray #8b8f99`) = netral/paused.
 - Font: **Inter** (400/500/600/700/800), konsisten di semua halaman.
 
 ## Struktur Sidebar
@@ -36,7 +36,8 @@ Avatar + nama + role · Settings icon (shortcut ke tab Keamanan/Settings)
 - **Alert/anomaly card:** border kiri merah tebal (4px), bukan background merah penuh — supaya tetap tenang secara visual.
 - **Status pill:** dot kecil + label, warna sesuai kategori semantik di atas.
 - **Platform switcher (Detail Platform):** chip dengan ikon inisial platform, state aktif = amber solid.
-- **Insight card (AI Insight):** icon badge berwarna sesuai kategori (merah=anomali, amber=rekomendasi, hijau=positif), tag kategori + tag platform + tag **Impact** (merah=Tinggi, amber=Sedang, abu=Rendah), action link + feedback 👍/👎 (icon-only) di kanan bawah.
+- **Insight card (AI Insight):** *(revisi — lihat `PROGRESS.md` untuk histori perubahan dari versi 3-pill sebelumnya)* kategori ditandai lewat icon badge + border kiri 4px berwarna (merah=Perlu Aksi, amber=Rekomendasi, hijau=Positif) — bukan pill terpisah. Impact (Tinggi/Sedang/Rendah) tampil sebagai dot+teks kecil di samping judul, platform jadi teks polos di footer (bareng timestamp). Footer cuma 1 action button self-contained ("Tandai sudah ditinjau"/"Tandai diterapkan"/"Tandai sudah dilihat" sesuai kategori) — tidak ada lagi link navigasi keluar kartu maupun feedback 👍/👎. Kategori "Anomali" di-rename jadi **"Perlu Aksi"** di semua tempat (filter, locked section, dialog upgrade) — bahasanya dipilih supaya condong ke rekomendasi aksi buat business owner, bukan istilah teknis data-science.
+- **AI Insight page layout:** ringkasan (Total Insight + 2 stat sekunder + baris compare-period) jadi 1 card gabungan di atas, Aksi Prioritas di bawahnya, lalu **2 tab** ("Semua Insight" / "Benchmark & Budget") — bukan 4 section yang semua tampil sekaligus seperti sebelumnya. Tab aktif pakai token warna aktif standar (amber solid).
 - **Priority summary (AI Insight):** panel "Rekomendasi Prioritas" di atas grid insight — reuse pola visual `brec-row` (icon bulat bernomor + judul + alasan singkat + action link), bukan komponen baru.
 - **Compare bar (kalau dibutuhkan lagi):** kalau mode compare platform di-revive, style-nya per-metrik horizontal bar (2 bar berdampingan per platform, warna beda per platform) — bukan tabel biasa, lebih gampang di-scan dan konsisten sama pola bar di Benchmark Industri.
 

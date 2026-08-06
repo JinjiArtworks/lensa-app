@@ -1,17 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TrendingUp } from "lucide-react";
 import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
 import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useProGate } from "@/components/shared/use-pro-gate";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
-import { InsightStatsRow } from "@/features/insight/components/InsightStatsRow";
+import { InsightSummaryCard } from "@/features/insight/components/InsightSummaryCard";
 import { PriorityPanel } from "@/features/insight/components/PriorityPanel";
 import { BenchmarkPanel } from "@/features/insight/components/BenchmarkPanel";
 import { BudgetRecommendationPanel } from "@/features/insight/components/BudgetRecommendationPanel";
@@ -26,10 +26,6 @@ import {
 } from "@/features/insight/lib/insight-matcher";
 import { BUDGET_REC, INDUSTRY_BENCHMARK, INDUSTRY_BENCHMARK_CATEGORY } from "@/features/insight/mock-data";
 import type { InsightItem } from "@/features/insight/types";
-
-function SectionLabel({ children }: { children: string }) {
-  return <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-ink-3">{children}</div>;
-}
 
 export default function InsightPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
@@ -71,38 +67,39 @@ export default function InsightPage() {
         </div>
       </div>
 
-      <SectionLabel>Ringkasan</SectionLabel>
-      <InsightStatsRow stats={stats} isFree={isFree} />
-      <div className="mb-5 flex items-center gap-2.5 rounded-xl bg-accent-bg px-3.5 py-2.5">
-        <TrendingUp className="size-4 shrink-0 text-accent-text" />
-        <div className="text-xs text-accent-text">{getCompareLine(range.preset)}</div>
-      </div>
+      <InsightSummaryCard stats={stats} isFree={isFree} compareLine={getCompareLine(range.preset)} />
 
-      <SectionLabel>Aksi Prioritas</SectionLabel>
       <div className="mb-5">
         <PriorityPanel items={priorityItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
       </div>
 
-      <SectionLabel>Benchmark &amp; Rekomendasi Budget</SectionLabel>
-      <div className="mb-5 grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
-        <BenchmarkPanel category={INDUSTRY_BENCHMARK_CATEGORY} metrics={INDUSTRY_BENCHMARK} />
-        <BudgetRecommendationPanel recommendations={BUDGET_REC} />
-      </div>
-
-      <SectionLabel>Semua Insight</SectionLabel>
-      <InsightToolbar
-        platform={platform}
-        onPlatformChange={setPlatform}
-        category={category}
-        onCategoryChange={setCategory}
-      />
-      <InsightGrid items={visibleItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
+      <Tabs defaultValue="insights">
+        <TabsList>
+          <TabsTrigger value="insights">Semua Insight</TabsTrigger>
+          <TabsTrigger value="benchmark">Benchmark &amp; Budget</TabsTrigger>
+        </TabsList>
+        <TabsContent value="insights">
+          <InsightToolbar
+            platform={platform}
+            onPlatformChange={setPlatform}
+            category={category}
+            onCategoryChange={setCategory}
+          />
+          <InsightGrid items={visibleItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
+        </TabsContent>
+        <TabsContent value="benchmark">
+          <div className="grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
+            <BenchmarkPanel category={INDUSTRY_BENCHMARK_CATEGORY} metrics={INDUSTRY_BENCHMARK} />
+            <BudgetRecommendationPanel recommendations={BUDGET_REC} />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <ProUpgradeDialog
         open={upgradeOpen}
         onOpenChange={setUpgradeOpen}
         title="Insight ini terkunci"
-        description="Plan Free cuma buka AI Insight kategori Positif. Upgrade ke Pro buat lihat Anomali & Rekomendasi lengkap."
+        description="Plan Free cuma buka AI Insight kategori Positif. Upgrade ke Pro buat lihat insight Perlu Aksi & Rekomendasi lengkap."
       />
     </div>
   );
