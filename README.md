@@ -21,6 +21,7 @@ npm run lint       # ESLint
 
 Semua proses development — dari ide produk, keputusan teknis, sampai apa yang beneran udah jadi — terdokumentasi di `docs/`. Urutan baca yang disarankan:
 
+0. **[`docs/SUBMISSION.md`](docs/SUBMISSION.md)** — ringkasan submission assessment (produk & referensi, pendekatan, perubahan user flow & rationale, keputusan teknis, catatan deployment, catatan penggunaan AI). Mulai dari sini kalau cuma punya waktu buat baca 1 dokumen.
 1. **[`docs/business-plan.md`](docs/business-plan.md)** — kenapa produk ini ada: positioning, target user, business model, dan batas scope yang eksplisit disepakati (apa yang IN, apa yang OUT).
 2. **[`docs/PROGRESS.md`](docs/PROGRESS.md)** — catatan kronologis tiap sesi kerja: apa yang dibangun, kenapa, dan bagaimana diverifikasi. Ini sumber kebenaran status project — kalau ada dokumen lain yang kelihatan beda cerita, `PROGRESS.md` yang benar.
 3. **[`docs/decisions-log.md`](docs/decisions-log.md)** — keputusan teknis non-obvious yang diambil, disusun per topik (bukan kronologis), tiap entry jawab "kenapa begini, bukan begitu" + trade-off yang sadar dilepas.
