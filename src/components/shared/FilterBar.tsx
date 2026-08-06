@@ -25,6 +25,11 @@ function isoDate(d: Date): string {
 }
 
 export function presetRange(preset: FilterPreset): { from: string; to: string } {
+  // Custom ranges are user-supplied (from/to), not derivable — callers must
+  // never call this with "custom".
+  if (preset === "custom") {
+    throw new Error("presetRange() does not support the 'custom' preset");
+  }
   const now = new Date();
   const to = isoDate(now);
   const from = new Date(now);
