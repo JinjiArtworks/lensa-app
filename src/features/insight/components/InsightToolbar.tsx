@@ -1,16 +1,12 @@
-import { CATEGORY_FILTER_OPTIONS, PERIOD_OPTIONS, PLATFORM_FILTER_OPTIONS } from "../mock-data";
-import type { InsightItem, PeriodKey } from "../types";
+import { CATEGORY_FILTER_OPTIONS, PLATFORM_FILTER_OPTIONS } from "../mock-data";
+import type { InsightItem } from "../types";
 
 export function InsightToolbar({
-  period,
-  onPeriodChange,
   platform,
   onPlatformChange,
   category,
   onCategoryChange,
 }: {
-  period: PeriodKey;
-  onPeriodChange: (v: PeriodKey) => void;
   platform: "all" | "meta" | "tiktok";
   onPlatformChange: (v: "all" | "meta" | "tiktok") => void;
   category: "all" | InsightItem["category"];
@@ -18,20 +14,6 @@ export function InsightToolbar({
 }) {
   return (
     <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
-      <label className="flex items-center gap-1.5 text-xs text-ink-2">
-        Periode:
-        <select
-          value={period}
-          onChange={(e) => onPeriodChange(e.target.value as PeriodKey)}
-          className="rounded-lg border border-line bg-card px-2.5 py-1.5 text-xs font-medium text-ink"
-        >
-          {PERIOD_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </label>
       <label className="flex items-center gap-1.5 text-xs text-ink-2">
         Platform:
         <select

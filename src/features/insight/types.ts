@@ -1,7 +1,9 @@
 export type InsightCategory = "anomali" | "rekomendasi" | "positif";
 export type ImpactLevel = "Tinggi" | "Sedang" | "Rendah";
 export type PlatformKey = "meta" | "tiktok" | "semua";
-export type PeriodKey = "yesterday" | "month1" | "month3";
+// Mirrors FilterBar's FilterPreset — AI Insight uses the same global date-range
+// filter as Overview/Detail Platform instead of its own bespoke period set.
+export type PeriodKey = "week" | "month" | "year" | "custom";
 
 export interface InsightItem {
   id: string;

@@ -4,7 +4,7 @@ import { Reveal } from "./Reveal";
 
 // Public landing page has no signed-in business to scope data to — always
 // shows the static demo anomaly, not a live per-viewer number.
-const spotlightItem = getInsightsForPeriod("yesterday", undefined).find((item) => item.id === "yesterday-anomali-1")!;
+const spotlightItem = getInsightsForPeriod("week", undefined).find((item) => item.id === "week-anomali-1")!;
 
 export function AiInsightSpotlight() {
   return (

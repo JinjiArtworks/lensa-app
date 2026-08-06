@@ -1,11 +1,5 @@
 import type { BenchmarkMetric, BudgetRecommendation, InsightItem, PeriodInsightData, PeriodKey } from "./types";
 
-export const PERIOD_OPTIONS: { value: PeriodKey; label: string }[] = [
-  { value: "yesterday", label: "Kemarin" },
-  { value: "month1", label: "1 Bulan Lalu" },
-  { value: "month3", label: "3 Bulan Lalu" },
-];
-
 export const CATEGORY_FILTER_OPTIONS: { value: "all" | InsightItem["category"]; label: string }[] = [
   { value: "all", label: "Semua" },
   { value: "anomali", label: "Anomali" },
@@ -21,12 +15,14 @@ export const PLATFORM_FILTER_OPTIONS: { value: "all" | "meta" | "tiktok"; label:
 
 // Template bank per periode: minimal 4 skenario per kategori (anomali/rekomendasi/positif)
 // biar filter kategori+platform kombinasi selalu punya isi yang wajar, bukan 1 filler generik.
-export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
-  yesterday: {
+// "custom" (rentang tanggal bebas dari FilterBar) belum punya skenario tersendiri — dipetakan
+// ke isi "year" di bawah (referensi terdekat), lihat INSIGHT_DATA.
+const INSIGHT_DATA_BASE: Record<Exclude<PeriodKey, "custom">, PeriodInsightData> = {
+  week: {
     compareLine: "Dibanding 2 hari lalu: 1 anomali baru terdeteksi di TikTok Ads, closing gabungan naik 4%.",
     items: [
       {
-        id: "yesterday-anomali-1",
+        id: "week-anomali-1",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -39,7 +35,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Potensi ~Rp450.000 spend terbuang tanpa closing tambahan minggu ini bila dibiarkan.",
       },
       {
-        id: "yesterday-anomali-2",
+        id: "week-anomali-2",
         category: "anomali",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -52,7 +48,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Kalau berlanjut 2-3 hari lagi, ROAS Meta berpotensi ikut turun.",
       },
       {
-        id: "yesterday-anomali-3",
+        id: "week-anomali-3",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -65,7 +61,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth dicek apakah ada campaign baru yang bidding-nya terlalu agresif.",
       },
       {
-        id: "yesterday-anomali-4",
+        id: "week-anomali-4",
         category: "anomali",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -78,7 +74,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Belum mendesak, tapi worth dipantau 2-3 hari ke depan.",
       },
       {
-        id: "yesterday-rekomendasi-1",
+        id: "week-rekomendasi-1",
         category: "rekomendasi",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -90,7 +86,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Potensi +8-10 closing tambahan/bulan bila 15% budget dialihkan ke Meta Ads.",
       },
       {
-        id: "yesterday-rekomendasi-2",
+        id: "week-rekomendasi-2",
         category: "rekomendasi",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -102,7 +98,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Berpotensi menahan CTR sebelum turun di bawah 2.5%.",
       },
       {
-        id: "yesterday-rekomendasi-3",
+        id: "week-rekomendasi-3",
         category: "rekomendasi",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -114,7 +110,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Eksperimen kecil, risiko rendah, potensi tambahan closing dari jam sepi.",
       },
       {
-        id: "yesterday-rekomendasi-4",
+        id: "week-rekomendasi-4",
         category: "rekomendasi",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -126,7 +122,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Berpotensi menghemat 10-12% spend TikTok Ads tanpa mengorbankan closing.",
       },
       {
-        id: "yesterday-positif-1",
+        id: "week-positif-1",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -139,7 +135,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — efisiensi biaya sudah di jalur yang tepat.",
       },
       {
-        id: "yesterday-positif-2",
+        id: "week-positif-2",
         category: "positif",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -152,7 +148,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — pertahankan creative & audiens yang sama.",
       },
       {
-        id: "yesterday-positif-3",
+        id: "week-positif-3",
         category: "positif",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -165,7 +161,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth dipertahankan — kandidat baik buat dinaikkan budgetnya bertahap.",
       },
       {
-        id: "yesterday-positif-4",
+        id: "week-positif-4",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -179,11 +175,11 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
       },
     ],
   },
-  month1: {
+  month: {
     compareLine: "Dibanding bulan lalu: ROAS gabungan naik 6%, tapi CPA TikTok Ads naik 9% — worth ditinjau.",
     items: [
       {
-        id: "month1-anomali-1",
+        id: "month-anomali-1",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -196,7 +192,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Bila tren berlanjut, CPA berpotensi naik lagi ~9% bulan depan.",
       },
       {
-        id: "month1-anomali-2",
+        id: "month-anomali-2",
         category: "anomali",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -209,7 +205,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth refresh creative sebelum CTR turun di bawah 3%.",
       },
       {
-        id: "month1-anomali-3",
+        id: "month-anomali-3",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -222,7 +218,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Perluas audiens atau ganti creative sebelum fatigue makin parah.",
       },
       {
-        id: "month1-anomali-4",
+        id: "month-anomali-4",
         category: "anomali",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -235,7 +231,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth review landing page atau proses checkout dari iklan Meta.",
       },
       {
-        id: "month1-rekomendasi-1",
+        id: "month-rekomendasi-1",
         category: "rekomendasi",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -247,7 +243,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Potensi +15-20% closing tambahan dari 3 campaign top performer.",
       },
       {
-        id: "month1-rekomendasi-2",
+        id: "month-rekomendasi-2",
         category: "rekomendasi",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -259,7 +255,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Berpotensi memulihkan CTR lewat segmentasi audiens baru.",
       },
       {
-        id: "month1-rekomendasi-3",
+        id: "month-rekomendasi-3",
         category: "rekomendasi",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -271,7 +267,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Potensi memperluas reach ke audiens dengan profil pembeli mirip.",
       },
       {
-        id: "month1-rekomendasi-4",
+        id: "month-rekomendasi-4",
         category: "rekomendasi",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -283,7 +279,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Menyederhanakan pengelolaan campaign tanpa menambah risiko besar.",
       },
       {
-        id: "month1-positif-1",
+        id: "month-positif-1",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -296,7 +292,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — strategi budget saat ini terbukti efektif.",
       },
       {
-        id: "month1-positif-2",
+        id: "month-positif-2",
         category: "positif",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -309,7 +305,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — pertahankan segmentasi remarketing yang sekarang.",
       },
       {
-        id: "month1-positif-3",
+        id: "month-positif-3",
         category: "positif",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -322,7 +318,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth dijadikan acuan gaya creative buat campaign berikutnya.",
       },
       {
-        id: "month1-positif-4",
+        id: "month-positif-4",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -336,11 +332,11 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
       },
     ],
   },
-  month3: {
+  year: {
     compareLine: "Dibanding 3 bulan lalu: tren spend naik konsisten +18%, closing rate makin efisien seiring waktu.",
     items: [
       {
-        id: "month3-anomali-1",
+        id: "year-anomali-1",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -353,7 +349,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Penjadwalan budget mingguan berpotensi hemat ~10% spend di hari lemah.",
       },
       {
-        id: "month3-anomali-2",
+        id: "year-anomali-2",
         category: "anomali",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -366,7 +362,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Bila tren CPC berlanjut, margin per closing berpotensi menipis kuartal depan.",
       },
       {
-        id: "month3-anomali-3",
+        id: "year-anomali-3",
         category: "anomali",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -379,7 +375,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth eksperimen hook 3 detik pertama di batch creative berikutnya.",
       },
       {
-        id: "month3-anomali-4",
+        id: "year-anomali-4",
         category: "anomali",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -392,7 +388,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth direview ulang saat evaluasi budget kuartal depan.",
       },
       {
-        id: "month3-rekomendasi-1",
+        id: "year-rekomendasi-1",
         category: "rekomendasi",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -404,7 +400,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Realokasi budget jangka panjang ke Meta berpotensi naikkan ROAS gabungan.",
       },
       {
-        id: "month3-rekomendasi-2",
+        id: "year-rekomendasi-2",
         category: "rekomendasi",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -416,7 +412,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Berpotensi menaikkan efisiensi spend tanpa menambah total budget.",
       },
       {
-        id: "month3-rekomendasi-3",
+        id: "year-rekomendasi-3",
         category: "rekomendasi",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -428,7 +424,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Creative baru berpotensi mengembalikan CTR ke level awal kuartal.",
       },
       {
-        id: "month3-rekomendasi-4",
+        id: "year-rekomendasi-4",
         category: "rekomendasi",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -440,7 +436,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Target yang lebih akurat membantu evaluasi performa jadi lebih relevan.",
       },
       {
-        id: "month3-positif-1",
+        id: "year-positif-1",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -453,7 +449,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — pertumbuhan sehat, efisiensi closing ikut membaik.",
       },
       {
-        id: "month3-positif-2",
+        id: "year-positif-2",
         category: "positif",
         platformLabel: "Meta Ads",
         platformKey: "meta",
@@ -466,7 +462,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — hasil iterasi creative & targeting sudah on track.",
       },
       {
-        id: "month3-positif-3",
+        id: "year-positif-3",
         category: "positif",
         platformLabel: "TikTok Ads",
         platformKey: "tiktok",
@@ -479,7 +475,7 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Worth dipertahankan sambil pelan-pelan tes scaling budget.",
       },
       {
-        id: "month3-positif-4",
+        id: "year-positif-4",
         category: "positif",
         platformLabel: "Semua Platform",
         platformKey: "semua",
@@ -492,6 +488,14 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
         impactNote: "Tidak perlu aksi — tren ini sehat untuk pertumbuhan jangka panjang.",
       },
     ],
+  },
+};
+
+export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
+  ...INSIGHT_DATA_BASE,
+  custom: {
+    ...INSIGHT_DATA_BASE.year,
+    compareLine: "Periode custom yang kamu pilih — insight di bawah memakai basis data 1 tahun terakhir sebagai referensi terdekat.",
   },
 };
 

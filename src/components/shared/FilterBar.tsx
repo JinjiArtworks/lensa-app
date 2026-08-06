@@ -12,7 +12,7 @@ export interface FilterValue {
   to: string;
 }
 
-const PRESET_LABELS: Record<FilterPreset, string> = {
+export const PRESET_LABELS: Record<FilterPreset, string> = {
   week: "Minggu Ini",
   month: "Bulan Ini",
   year: "Tahun Ini",

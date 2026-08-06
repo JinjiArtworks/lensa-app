@@ -7,23 +7,24 @@ import { useUiStore } from "@/stores/ui";
 
 export interface ExportReportData {
   scope: string;
-  roas: string;
-  spend: string;
-  closing: string;
   note: string;
   period?: string;
+  // Metrics variant (Overview/Detail Platform) — omit these + pass `items`
+  // for the AI Insight text variant instead.
+  roas?: string;
+  spend?: string;
+  closing?: string;
+  // Insight variant (AI Insight) — a short list of insight headlines instead
+  // of a KPI trio, since there's no single chart/number to summarize.
+  items?: string[];
 }
 
 function toPlainText(data: ExportReportData): string {
-  return [
-    `${data.scope} · ${data.period ?? "30 hari"}`,
-    data.roas,
-    `Spend ${data.spend} · ${data.closing} closing`,
-    "",
-    data.note,
-    "",
-    "via Lensa",
-  ].join("\n");
+  const header = `${data.scope} · ${data.period ?? "30 hari"}`;
+  const body = data.items
+    ? data.items.map((line, i) => `${i + 1}. ${line}`).join("\n")
+    : [data.roas, `Spend ${data.spend} · ${data.closing} closing`].filter(Boolean).join("\n");
+  return [header, body, "", data.note, "", "via Lensa"].join("\n");
 }
 
 export function ExportReportModal({
@@ -105,10 +106,22 @@ export function ExportReportModal({
           <div className="mb-2 text-[10.5px] tracking-wide text-ink-3">
             {`${data.scope} · ${data.period ?? "30 hari"}`.toUpperCase()}
           </div>
-          <div className="mb-1 text-xl font-extrabold">{data.roas}</div>
-          <div className="mb-2.5 text-xs text-ink-2">
-            Spend {data.spend} · {data.closing} closing
-          </div>
+          {data.items ? (
+            <ol className="mb-2.5 flex flex-col gap-1.5 text-xs text-ink-2">
+              {data.items.map((line, i) => (
+                <li key={i} className="flex gap-1.5">
+                  <span className="font-bold text-ink">{i + 1}.</span> {line}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <>
+              <div className="mb-1 text-xl font-extrabold">{data.roas}</div>
+              <div className="mb-2.5 text-xs text-ink-2">
+                Spend {data.spend} · {data.closing} closing
+              </div>
+            </>
+          )}
           <div className="border-t border-line pt-2.5 text-[11.5px] leading-relaxed text-ink-2">{data.note}</div>
           <div className="mt-2.5 text-right text-[10.5px] text-ink-3">via Lensa</div>
         </div>

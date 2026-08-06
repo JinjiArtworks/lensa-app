@@ -3,12 +3,12 @@ import { shouldShowProactiveAlert } from "@/features/overview-dashboard/lib/proa
 import { INSIGHT_DATA } from "../mock-data";
 import type { BenchmarkMetric, InsightItem, PeriodKey } from "../types";
 
-// Kartu anomali "live" di periode Kemarin dituntun dari PLATFORMS milik bisnis aktif
+// Kartu anomali "live" di periode Minggu Ini dituntun dari PLATFORMS milik bisnis aktif
 // (di-fetch via useOverviewData, sama sumbernya dengan Proactive Alert Card di
 // Overview — lihat proactive-alert.ts) — satu sumber logic dipakai di 2 tempat,
 // bukan duplikasi angka/threshold. `platforms` di-pass dari pemanggil (bukan import
 // statis) karena sekarang di-scope per businessId.
-const LIVE_ANOMALY_ID = "yesterday-anomali-1";
+const LIVE_ANOMALY_ID = "week-anomali-1";
 
 function buildLiveAnomalyItem(platforms: OverviewData["PLATFORMS"]): InsightItem | null {
   const alert = shouldShowProactiveAlert(platforms);
@@ -31,7 +31,7 @@ function buildLiveAnomalyItem(platforms: OverviewData["PLATFORMS"]): InsightItem
 
 export function getInsightsForPeriod(period: PeriodKey, platforms: OverviewData["PLATFORMS"] | undefined): InsightItem[] {
   const { items } = INSIGHT_DATA[period];
-  if (period !== "yesterday" || !platforms) return items;
+  if (period !== "week" || !platforms) return items;
 
   const live = buildLiveAnomalyItem(platforms);
   if (!live) return items;
