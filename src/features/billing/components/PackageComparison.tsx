@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import type { BusinessPlan } from "@/lib/firebase/types";
 
 const FREE_FEATURES = [
@@ -49,8 +50,9 @@ export function PackageComparison({
           <p className="mb-2.5 text-[12.5px] text-ink-2">Cocok buat coba-coba pantau satu platform iklan.</p>
           <ul className="mb-3.5 flex flex-col gap-2 text-[12.5px]">
             {FREE_FEATURES.map((f) => (
-              <li key={f.text} className={f.included ? "text-ink-2" : "text-ink-3"}>
+              <li key={f.text} className={`flex items-center gap-1.5 ${f.included ? "text-ink-2" : "text-ink-3"}`}>
                 {f.included ? "✓" : "✕"} {f.text}
+                {!f.included && <ProLockBadge tooltip="Fitur Pro — upgrade buat buka akses" />}
               </li>
             ))}
           </ul>

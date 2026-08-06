@@ -1,21 +1,31 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
+import { useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
+import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
 import type { BusinessPlan } from "@/lib/firebase/types";
 import { INVOICES } from "../mock-data";
 
+const FREE_SNAPSHOT = [
+  "1 pengguna, tanpa invite anggota tim",
+  "AI Insight dasar — kategori Positif saja",
+  "Histori data 7 hari terakhir",
+];
+
 export function PlanSummary({
+  businessId,
   plan,
   onOpenPayment,
-  onViewPackages,
 }: {
+  businessId: string | undefined;
   plan: BusinessPlan;
   onOpenPayment: () => void;
-  onViewPackages: () => void;
 }) {
   const showToast = useUiStore((s) => s.showToast);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(businessId);
 
   if (plan === "free") {
+    const connectedName = connectedPlatforms[0] ? PLATFORM_LABELS[connectedPlatforms[0] as "meta" | "tiktok"]?.name : null;
     return (
       <div className="rounded-2xl border border-line bg-card p-4">
         <h3 className="text-sm font-bold">
@@ -24,11 +34,17 @@ export function PlanSummary({
         <div className="my-2.5 text-[22px] font-extrabold">
           Rp0<span className="text-xs font-normal text-ink-3">/bulan</span>
         </div>
-        <p className="mb-3.5 max-w-[420px] text-[12.5px] text-ink-2">
-          Kamu di plan Free — 1 platform, 1 pengguna, AI Insight dasar. Upgrade ke Pro buat multi-bisnis, semua
-          platform terhubung sekaligus, dan export laporan.
+        <p className="mb-2.5 max-w-[460px] text-[12.5px] text-ink-2">
+          Platform terhubung: <b className="text-ink">{connectedName ?? "belum ada"}</b> (limit 1 dari plan Free).
         </p>
-        <Button onClick={onViewPackages}>Lihat Paket Pro</Button>
+        <ul className="mb-3.5 flex flex-col gap-1.5 text-[12.5px] text-ink-2">
+          {FREE_SNAPSHOT.map((line) => (
+            <li key={line}>✓ {line}</li>
+          ))}
+        </ul>
+        <Button asChild>
+          <a href="#paket-tersedia">Lihat Paket Pro</a>
+        </Button>
       </div>
     );
   }

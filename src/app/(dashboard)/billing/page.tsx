@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
-import { BillingTabs, type BillingTab } from "@/features/billing/components/BillingTabs";
 import { PackageComparison } from "@/features/billing/components/PackageComparison";
 import { PlanSummary } from "@/features/billing/components/PlanSummary";
 import { PaymentGatewayModal } from "@/features/billing/components/PaymentGatewayModal";
@@ -12,12 +11,15 @@ import { useBusinessPlan } from "@/features/connect-platform/api/use-connect-pla
 import { useUpdateBusinessPlan } from "@/features/billing/api/use-update-plan";
 import type { BusinessPlan } from "@/lib/firebase/types";
 
+function SectionLabel({ children }: { children: string }) {
+  return <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-ink-3">{children}</div>;
+}
+
 export default function BillingPage() {
   const showToast = useUiStore((s) => s.showToast);
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const { data: plan = "free" } = useBusinessPlan(activeBusinessId);
   const updatePlan = useUpdateBusinessPlan(activeBusinessId);
-  const [tab, setTab] = useState<BillingTab>("overview");
   const [paymentOpen, setPaymentOpen] = useState(false);
 
   function handleSelectPlan(next: BusinessPlan) {
@@ -40,13 +42,17 @@ export default function BillingPage() {
           Download invoice terakhir
         </Button>
       </div>
-      <BillingTabs active={tab} onChange={setTab} />
-      {tab === "overview" && (
-        <PlanSummary plan={plan} onOpenPayment={() => setPaymentOpen(true)} onViewPackages={() => setTab("packages")} />
-      )}
-      {tab === "packages" && (
+
+      <SectionLabel>Ringkasan</SectionLabel>
+      <div className="mb-5">
+        <PlanSummary businessId={activeBusinessId} plan={plan} onOpenPayment={() => setPaymentOpen(true)} />
+      </div>
+
+      <div id="paket-tersedia">
+        <SectionLabel>Paket Tersedia</SectionLabel>
         <PackageComparison plan={plan} onSelectPlan={handleSelectPlan} pending={updatePlan.isPending} />
-      )}
+      </div>
+
       <PaymentGatewayModal open={paymentOpen} onClose={() => setPaymentOpen(false)} />
     </div>
   );
