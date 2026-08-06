@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Lock, LogOut } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Check, LogOut } from "lucide-react";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
 import { useLogout } from "@/features/auth/use-logout";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
 import {
-  useBusinessPlan,
   useConnectPlatform,
   useConnectedPlatforms,
   useSwitchPlatform,
@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   const { data: profile } = useUserProfile(authUser?.uid);
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const showToast = useUiStore((s) => s.showToast);
-  const { data: plan = "free" } = useBusinessPlan(activeBusinessId);
+  const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const connectPlatform = useConnectPlatform(activeBusinessId);
   const switchPlatform = useSwitchPlatform(activeBusinessId);
@@ -47,16 +47,14 @@ export default function OnboardingPage() {
   const router = useRouter();
   const logout = useLogout();
 
-  const isFree = plan === "free";
   const platformLimit = isFree ? 1 : PLATFORMS.length;
-  const limitReached = connectedPlatforms.length >= platformLimit;
 
   const name = profile?.name ?? authUser?.email?.split("@")[0] ?? "Pengguna";
   const email = authUser?.email ?? "";
 
   function connect(key: PlatformKey) {
     if (connectedPlatforms.includes(key) || connecting) return;
-    if (limitReached) {
+    if (isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit)) {
       setPendingSwitch(key);
       return;
     }
@@ -137,13 +135,12 @@ export default function OnboardingPage() {
         {PLATFORMS.map((p) => {
           const isDone = connectedPlatforms.includes(p.key);
           const isConnecting = connecting === p.key;
-          const isLocked = !isDone && limitReached;
+          const isLocked = isPlatformLocked(isDone, connectedPlatforms.length, platformLimit);
           return (
             <button
               key={p.key}
               type="button"
               onClick={() => connect(p.key)}
-              title={isLocked ? "Ganti ke platform ini, atau upgrade ke Pro buat pakai keduanya" : undefined}
               className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
                 isDone
                   ? "border-2 border-green bg-green-bg"
@@ -168,7 +165,7 @@ export default function OnboardingPage() {
               {isConnecting ? (
                 <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-line border-t-accent" />
               ) : isLocked ? (
-                <Lock className="size-4 shrink-0 text-ink-3" />
+                <ProLockBadge tooltip="Ganti ke platform ini, atau upgrade ke Pro buat pakai keduanya" />
               ) : (
                 <div
                   className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${
@@ -198,35 +195,22 @@ export default function OnboardingPage() {
         Lanjut ke dashboard
       </button>
 
-      <Dialog open={pendingSwitch !== null} onOpenChange={(o) => !o && setPendingSwitch(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ganti ke {pendingPlatformName}?</DialogTitle>
-          </DialogHeader>
-          <p className="mb-4 text-[12.5px] leading-relaxed text-ink-2">
+      <ProUpgradeDialog
+        open={pendingSwitch !== null}
+        onOpenChange={(o) => !o && setPendingSwitch(null)}
+        title={`Ganti ke ${pendingPlatformName}?`}
+        description={
+          <>
             Plan Free cuma bisa 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan diganti
             dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
-          </p>
-          <div className="flex flex-col gap-2">
-            <Button disabled={switchPlatform.isPending} onClick={confirmSwitch} className="w-full justify-center">
-              {switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-center"
-              onClick={() => {
-                setPendingSwitch(null);
-                router.push("/billing");
-              }}
-            >
-              Upgrade ke Pro
-            </Button>
-            <Button variant="ghost" className="w-full justify-center" onClick={() => setPendingSwitch(null)}>
-              Batal
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+        swapAction={{
+          label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
+          pending: switchPlatform.isPending,
+          onConfirm: confirmSwitch,
+        }}
+      />
     </div>
   );
 }
