@@ -38,3 +38,7 @@ next-env.d.ts
 
 # subagent-driven-development scratch
 /.superpowers/
+
+# implementation planning docs (specs/plans) — local reference only, not
+# pushed; tasklist-style docs (docs/PROGRESS.md etc.) stay tracked
+/docs/superpowers/
