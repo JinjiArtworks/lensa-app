@@ -3,12 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Check, Lock, LayoutDashboard, BarChart3, Sparkles, CreditCard, Settings, Plus, LogOut } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  LayoutDashboard,
+  BarChart3,
+  Sparkles,
+  CreditCard,
+  Settings,
+  Plus,
+  LogOut,
+} from "lucide-react";
 import { useLogout } from "@/features/auth/use-logout";
 import { useAuthStore } from "@/stores/auth";
 import { useUiStore, type DetailPlatformView } from "@/stores/ui";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
 import { useProGate } from "@/components/shared/use-pro-gate";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
@@ -179,7 +191,12 @@ function DetailPlatformNavItem({
         }`}
       >
         <Icon className="size-[17px] shrink-0" />
-        <span className="max-[760px]:hidden">{item.label}</span>
+        <span className="min-w-0 flex-1 max-[760px]:hidden">{item.label}</span>
+        {active ? (
+          <ChevronDown className="size-3.5 shrink-0 max-[760px]:hidden" />
+        ) : (
+          <ChevronRight className="size-3.5 shrink-0 max-[760px]:hidden" />
+        )}
       </Link>
       {active && (
         <div className="ml-2 mt-2 flex flex-col gap-1 border-l border-line pl-2.5 max-[760px]:hidden">
@@ -200,7 +217,7 @@ function DetailPlatformNavItem({
                 {isActive ? (
                   <Check className="size-3.5 shrink-0" />
                 ) : locked ? (
-                  <Lock className="size-3 shrink-0 text-ink-3" />
+                  <ProLockBadge tooltip="Upgrade ke Pro untuk buka multi platform" />
                 ) : null}
               </button>
             );

@@ -7,7 +7,7 @@ import type { BusinessPlan } from "@/lib/firebase/types";
 import { INVOICES } from "../mock-data";
 
 const FREE_SNAPSHOT = [
-  "1 pengguna, tanpa invite anggota tim",
+  "1 pengguna",
   "AI Insight dasar — kategori Positif saja",
   "Histori data 7 hari terakhir",
 ];

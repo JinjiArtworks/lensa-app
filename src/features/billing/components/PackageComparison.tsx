@@ -4,7 +4,7 @@ import type { BusinessPlan } from "@/lib/firebase/types";
 
 const FREE_FEATURES = [
   { text: "1 platform iklan (pilih Meta Ads atau TikTok Ads)", included: true },
-  { text: "1 pengguna, tanpa invite anggota tim", included: true },
+  { text: "1 pengguna", included: true },
   { text: "AI Insight dasar — kategori Positif saja", included: true },
   { text: "Histori data 7 hari terakhir", included: true },
   { text: "Tanpa export & copy as report", included: false },
@@ -13,7 +13,7 @@ const FREE_FEATURES = [
 
 const PRO_FEATURES = [
   "Meta Ads & TikTok Ads otomatis terhubung",
-  "Multi-bisnis & unlimited anggota tim",
+  "Multi-bisnis",
   "Full AI Insight — anomali, rekomendasi & positif",
   "Export laporan & copy as report",
   "Histori data penuh, tanpa batas",
