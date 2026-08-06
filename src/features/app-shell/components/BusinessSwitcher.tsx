@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { CreateBusinessModal } from "@/components/shared/CreateBusinessModal";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
-import { useAddBusiness, useBusinesses } from "../api/use-businesses";
+import { useBusinesses } from "../api/use-businesses";
 
 function initialsOf(name: string): string {
   return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -16,8 +19,10 @@ export function BusinessSwitcher() {
   const setActiveBusinessId = useUiStore((s) => s.setActiveBusinessId);
   const uid = useAuthStore((s) => s.user?.uid);
   const { data: businesses = [] } = useBusinesses(uid);
-  const addBusiness = useAddBusiness(uid);
+  const { isFree } = useProGate(activeBusinessId ?? undefined);
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
     if (!activeBusinessId && businesses.length > 0) setActiveBusinessId(businesses[0].id);
@@ -31,7 +36,7 @@ export function BusinessSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        title={`${active.name} · Pro plan`}
+        title={`${active.name} · ${active.plan === "free" ? "Free" : "Pro"} plan`}
         className="flex w-full items-center gap-2 rounded-lg border border-line bg-bg p-2.5 text-left max-[760px]:justify-center max-[760px]:p-1.5"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-bg text-[11px] font-bold text-accent-text">
@@ -39,7 +44,9 @@ export function BusinessSwitcher() {
         </span>
         <span className="min-w-0 flex-1 max-[760px]:hidden">
           <span className="block truncate text-[12.5px] font-bold leading-tight text-ink">{active.name}</span>
-          <span className="block text-[10.5px] font-semibold text-accent-text">Pro plan</span>
+          <span className="block text-[10.5px] font-semibold text-accent-text">
+            {active.plan === "free" ? "Free" : "Pro"} plan
+          </span>
         </span>
         <ChevronDown className="size-4 shrink-0 text-ink-2 max-[760px]:hidden" />
       </button>
@@ -72,19 +79,33 @@ export function BusinessSwitcher() {
           <hr className="my-1.5 border-line" />
           <button
             type="button"
-            disabled={addBusiness.isPending}
-            onClick={() =>
-              addBusiness.mutate(`Bisnis Baru #${businesses.length + 1}`, {
-                onSuccess: () => showToast("Bisnis baru ditambahkan", "success"),
-                onError: () => showToast("Gagal menambah bisnis, coba lagi", "error"),
-              })
-            }
-            className="w-full rounded-lg p-2 text-left text-[12.5px] font-bold text-accent-text hover:bg-bg disabled:opacity-45"
+            onClick={() => {
+              setOpen(false);
+              if (isFree) setUpgradeOpen(true);
+              else setCreateOpen(true);
+            }}
+            className="w-full rounded-lg p-2 text-left text-[12.5px] font-bold text-accent-text hover:bg-bg"
           >
             + Tambah Bisnis Baru
           </button>
         </div>
       )}
+
+      <CreateBusinessModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        ownerId={uid}
+        onCreated={(businessId) => {
+          setActiveBusinessId(businessId);
+          showToast("Bisnis baru ditambahkan", "success");
+        }}
+      />
+      <ProUpgradeDialog
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title="Tambah bisnis baru?"
+        description="Plan Free cuma bisa 1 bisnis. Upgrade ke Pro buat kelola beberapa bisnis sekaligus."
+      />
     </div>
   );
 }

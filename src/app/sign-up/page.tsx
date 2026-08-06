@@ -8,7 +8,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { mapFirebaseAuthError } from "@/lib/firebase/auth-errors";
 import { signUpSchema } from "@/features/auth/schemas";
-import { createUserProfile, createDefaultBusiness } from "@/features/auth/firestore";
+import { createUserProfile } from "@/features/auth/firestore";
 import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
 import { useBusinesses } from "@/features/app-shell/api/use-businesses";
@@ -29,11 +29,14 @@ export default function SignUpPage() {
   const { data: businesses } = useBusinesses(user?.uid);
 
   // Same "no flash" gating as sign-in — see that page for the full rationale.
+  // Onboarding's job is now "does this user have a business yet", not
+  // platform connection — that's Binding's concern, doesn't gate the
+  // dashboard at all.
   useEffect(() => {
     if (initializing || !user || !businesses) return;
     const businessDoc = businesses[0];
     if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
-    router.replace((businessDoc?.connectedPlatforms?.length ?? 0) > 0 ? "/overview" : "/onboarding");
+    router.replace(businessDoc ? "/overview" : "/onboarding");
   }, [initializing, user, businesses, router]);
 
   if (initializing || user) {
@@ -61,8 +64,6 @@ export default function SignUpPage() {
     try {
       const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
       await createUserProfile(credential.user.uid, { name, email });
-      const businessId = await createDefaultBusiness(credential.user.uid);
-      useUiStore.getState().setActiveBusinessId(businessId);
       useUiStore.getState().showToast("Akun berhasil dibuat", "success");
       router.push("/onboarding");
     } catch (error) {

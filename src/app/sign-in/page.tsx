@@ -28,12 +28,14 @@ export default function SignInPage() {
   // Redirect an already-authenticated visitor before the form ever renders —
   // gating on `initializing` (and `user` while we're still resolving which
   // business/onboarding-state they land on) avoids the sign-in form flashing
-  // for a moment before bouncing to the dashboard.
+  // for a moment before bouncing to the dashboard. Onboarding's job is "does
+  // this user have a business yet" — platform connection (Binding) doesn't
+  // gate the dashboard at all.
   useEffect(() => {
     if (initializing || !user || !businesses) return;
     const businessDoc = businesses[0];
     if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
-    router.replace((businessDoc?.connectedPlatforms?.length ?? 0) > 0 ? "/overview" : "/onboarding");
+    router.replace(businessDoc ? "/overview" : "/onboarding");
   }, [initializing, user, businesses, router]);
 
   if (initializing || user) {
@@ -67,8 +69,7 @@ export default function SignInPage() {
       if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
 
       useUiStore.getState().showToast("Berhasil masuk", "success");
-      const connectedPlatforms = (businessDoc?.data().connectedPlatforms ?? []) as string[];
-      router.push(connectedPlatforms.length > 0 ? "/overview" : "/onboarding");
+      router.push(businessDoc ? "/overview" : "/onboarding");
     } catch (error) {
       const message = mapFirebaseAuthError(error);
       setFormError(message);

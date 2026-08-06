@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase/client";
-import type { BusinessDoc } from "@/lib/firebase/types";
+import type { BusinessCategory, BusinessDoc } from "@/lib/firebase/types";
 
 async function fetchBusinesses(ownerId: string): Promise<BusinessDoc[]> {
   const snapshot = await getDocs(query(collection(getFirestoreDb(), "businesses"), where("ownerId", "==", ownerId)));
@@ -21,10 +21,11 @@ export function useBusinesses(ownerId: string | undefined) {
 export function useAddBusiness(ownerId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, category }: { name: string; category: BusinessCategory }) => {
       const ref = await addDoc(collection(getFirestoreDb(), "businesses"), {
         ownerId,
         name,
+        category,
         connectedPlatforms: [],
         plan: "free",
         createdAt: serverTimestamp(),
