@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — "Sync & Analisis Ulang" AI Insight sekarang simulasi nemuin 1 insight baru tiap diklik, bukan cuma update timestamp doang)
+**Last updated:** 2026-08-06 (sesi keempatbelas — fix bug: insight baru dari Sync & Analisis Ulang sekarang beneran akumulasi bukan gantiin, angka & card ikut naik tiap klik; teks "Terakhir sync" ditambah di kartu ringkasan)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -53,6 +53,13 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **`SyncButton.tsx`** dapet prop opsional baru `onSynced` — kalau dikasih, override toast default (dipakai AI Insight buat toast custom "insight baru ditemukan"; Overview/Detail Platform yang nggak pass prop ini tetap jalan kayak biasa, 0 perubahan perilaku di 2 halaman itu).
 - **`/insight` page**: state `freshInsight` — tiap klik Sync & Analisis Ulang manggil `pickFreshInsight()`, hasilnya di-prepend ke `periodItems` (otomatis kehitung di stat Total Insight/Rekomendasi baru, ikut muncul di Aksi Prioritas kalau impact-nya cukup tinggi, ikut nongol di grid Semua Insight sesuai kategorinya) + banner khusus "✨ Insight baru dari analisis ulang" di atas kartu ringkasan (bisa ditutup manual, atau otomatis ke-reset kalau ganti periode filter).
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` 10.3KB, +0.4KB wajar buat pool data+banner baru).
+
+**Lanjut sesi keempatbelas — user coba fitur "insight baru saat sync" barusan, laporan bug: angka Total Insight/Rekomendasi & card grid nggak keliatan berubah, cuma teks banner yang ganti; sekalian minta teks "terakhir sync" lebih keliatan:**
+- **Root cause:** `pickFreshInsight()` sebelumnya **gantiin** 1 item lama dengan 1 item baru tiap klik (state `freshInsight` singular) — jumlah total selalu "+1" persis sama tiap kali sync, jadi setelah klik pertama nggak ada perubahan angka yang keliatan di klik-klik berikutnya, cuma isi bannernya yang beda.
+- **Fix:** state diganti jadi array `freshInsights[]` yang **diakumulasi** (bukan diganti) tiap klik sync — `pickFreshInsight(excludeIds[])` sekarang exclude semua id yang udah pernah muncul, return `null` kalau pool 6 skenario udah habis semua (toast beda: "semua insight simulasi periode ini sudah ditemukan"). Total Insight/Rekomendasi baru/grid sekarang beneran naik tiap klik sampai pool abis, direset kalau ganti filter periode.
+- **Banner disederhanain jadi 2 state terpisah**: `freshInsights` (data, persisten) vs `showFreshBanner` (visibility banner doang) — tutup banner (tombol X) cuma nyembunyiin notifikasinya, insight yang udah ke-collect tetap kehitung di angka & grid (nggak ikut kebuang).
+- **`InsightSummaryCard`** dapet prop baru `lastSyncedAt`, ditampilin sebagai teks "Terakhir sync: {waktu}" di baris footer card (sebelah compare-line) — lebih deket ke angka yang berubah dibanding teks kecil di subheader yang sebelumnya kurang keliatan.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` 10.4KB).
 
 **Sesi keempatbelas (2026-08-06) — retest sign-up di Vercel dikonfirmasi jalan, fix presisi angka rupiah, lalu mulai "Dashboard Revamp" (inisiatif baru di luar checklist Phase 4, permintaan langsung user): Phase 1/7 selesai — global components + Pro-gating reusable, dieksekusi via brainstorming → writing-plans → subagent-driven-development:**
 - **Retest sign-up/login Vercel (dari catatan sesi ketigabelas) — dikonfirmasi user langsung, berhasil.**

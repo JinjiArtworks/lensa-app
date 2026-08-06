@@ -42,12 +42,14 @@ export function getCompareLine(period: PeriodKey): string {
 }
 
 // "Sync & Analisis Ulang" simulation — picks one scenario from SYNC_INSIGHT_POOL
-// so each click feels like the AI surfaced something new, never the same one
-// twice in a row. Still a simulated/template pick, not a live re-analysis.
-export function pickFreshInsight(excludeId?: string): InsightItem {
-  const candidates = SYNC_INSIGHT_POOL.filter((it) => it.id !== excludeId);
-  const pool = candidates.length > 0 ? candidates : SYNC_INSIGHT_POOL;
-  return pool[Math.floor(Math.random() * pool.length)];
+// the caller hasn't already surfaced this session (excludeIds accumulates across
+// clicks so numbers keep climbing instead of just swapping the same +1 item).
+// Returns null once the whole pool's been surfaced — still a simulated/template
+// pick, not a live re-analysis, so it can't invent scenarios forever.
+export function pickFreshInsight(excludeIds: string[]): InsightItem | null {
+  const candidates = SYNC_INSIGHT_POOL.filter((it) => !excludeIds.includes(it.id));
+  if (candidates.length === 0) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 export function computeInsightStats(items: InsightItem[]): {

@@ -41,17 +41,26 @@ export default function InsightPage() {
   const [platform, setPlatform] = useState<"all" | "meta" | "tiktok">("all");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   // Simulasi "AI menemukan insight baru" saat Sync & Analisis Ulang diklik —
-  // lihat pickFreshInsight() di insight-matcher.ts. Direset kalau periode
-  // diganti, karena insight "baru" dari lensa periode lain nggak relevan lagi.
-  const [freshInsight, setFreshInsight] = useState<InsightItem | null>(null);
+  // lihat pickFreshInsight() di insight-matcher.ts. Nambah (bukan gantiin) tiap
+  // klik biar Total Insight dkk beneran naik terus, bukan cuma tetep +1 kayak
+  // pendekatan sebelumnya. Direset kalau periode diganti — insight "baru" dari
+  // lensa periode lain nggak relevan lagi.
+  const [freshInsights, setFreshInsights] = useState<InsightItem[]>([]);
+  const [showFreshBanner, setShowFreshBanner] = useState(false);
 
   useEffect(() => {
-    setFreshInsight(null);
+    setFreshInsights([]);
+    setShowFreshBanner(false);
   }, [range.preset]);
 
   function handleInsightSync() {
-    const next = pickFreshInsight(freshInsight?.id);
-    setFreshInsight(next);
+    const next = pickFreshInsight(freshInsights.map((it) => it.id));
+    if (!next) {
+      showToast("Analisis ulang selesai — semua insight simulasi periode ini sudah ditemukan");
+      return;
+    }
+    setFreshInsights((prev) => [next, ...prev]);
+    setShowFreshBanner(true);
     showToast(`Analisis ulang selesai — insight baru ditemukan: "${next.title}"`);
   }
 
@@ -60,8 +69,8 @@ export default function InsightPage() {
   // jadi halaman ini nggak perlu full-page loading gate kayak Overview/Detail.
   const periodItems = useMemo(() => {
     const base = getInsightsForPeriod(range.preset, overviewData?.PLATFORMS);
-    return freshInsight ? [freshInsight, ...base] : base;
-  }, [range.preset, overviewData, freshInsight]);
+    return [...freshInsights, ...base];
+  }, [range.preset, overviewData, freshInsights]);
   const stats = useMemo(() => computeInsightStats(periodItems), [periodItems]);
   const priorityItems = useMemo(() => pickPriorityInsights(periodItems), [periodItems]);
   const visibleItems = useMemo(
@@ -88,7 +97,7 @@ export default function InsightPage() {
         </div>
       </div>
 
-      {freshInsight && (
+      {showFreshBanner && freshInsights.length > 0 && (
         <div className="mb-5 flex items-start gap-3 rounded-2xl border border-accent bg-accent-bg p-4">
           <Sparkles className="size-5 shrink-0 text-accent-text" />
           <div className="min-w-0 flex-1">
@@ -99,13 +108,18 @@ export default function InsightPage() {
               </span>
             </div>
             <div className="mt-1 text-[12.5px] leading-relaxed text-accent-text">
-              <b>{freshInsight.title}</b> · {freshInsight.platformLabel} — {freshInsight.impactNote}
+              <b>{freshInsights[0].title}</b> · {freshInsights[0].platformLabel} — {freshInsights[0].impactNote}
             </div>
+            {freshInsights.length > 1 && (
+              <div className="mt-1 text-[11px] text-accent-text/80">
+                +{freshInsights.length - 1} insight baru lainnya dari sync sebelumnya di periode ini.
+              </div>
+            )}
           </div>
           <button
             type="button"
             title="Tutup"
-            onClick={() => setFreshInsight(null)}
+            onClick={() => setShowFreshBanner(false)}
             className="shrink-0 text-accent-text"
           >
             <X className="size-4" />
@@ -113,7 +127,7 @@ export default function InsightPage() {
         </div>
       )}
 
-      <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} />
+      <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} lastSyncedAt={lastSyncedAt} />
 
       <div className="mb-5">
         <PriorityPanel items={priorityItems} />

@@ -6,9 +6,11 @@ import { TrendingUp } from "lucide-react";
 export function InsightSummaryCard({
   stats,
   compareLine,
+  lastSyncedAt,
 }: {
   stats: { total: number; urgent: number; newRecommendations: number };
   compareLine: string;
+  lastSyncedAt: string;
 }) {
   const secondary = [
     { label: "Perlu aksi segera", value: stats.urgent },
@@ -31,9 +33,12 @@ export function InsightSummaryCard({
           ))}
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-2 border-t border-line-2 pt-3 text-xs text-ink-2">
-        <TrendingUp className="size-3.5 shrink-0 text-accent-text" />
-        {compareLine}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line-2 pt-3 text-xs text-ink-2">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="size-3.5 shrink-0 text-accent-text" />
+          {compareLine}
+        </div>
+        <span className="shrink-0 text-[11px] text-ink-3">Terakhir sync: {lastSyncedAt}</span>
       </div>
     </div>
   );
