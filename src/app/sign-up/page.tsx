@@ -11,6 +11,7 @@ import { signUpSchema } from "@/features/auth/schemas";
 import { createUserProfile, createDefaultBusiness } from "@/features/auth/firestore";
 import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
+import { useBusinesses } from "@/features/app-shell/api/use-businesses";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -24,10 +25,24 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const initializing = useAuthStore((s) => s.initializing);
+  const { data: businesses } = useBusinesses(user?.uid);
 
+  // Same "no flash" gating as sign-in — see that page for the full rationale.
   useEffect(() => {
-    if (user) router.push("/overview");
-  }, [user, router]);
+    if (initializing || !user || !businesses) return;
+    const businessDoc = businesses[0];
+    if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
+    router.replace((businessDoc?.connectedPlatforms?.length ?? 0) > 0 ? "/overview" : "/onboarding");
+  }, [initializing, user, businesses, router]);
+
+  if (initializing || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <span className="size-5 animate-spin rounded-full border-2 border-line border-t-accent" />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import { useEffect, useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
@@ -55,37 +54,60 @@ export function FilterBar({
   const initialRange = initialFilterValue(defaultPreset);
   const [customFrom, setCustomFrom] = useState(initialRange.from);
   const [customTo, setCustomTo] = useState(initialRange.to);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [showCustomPanel, setShowCustomPanel] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Plain positioned div instead of a Radix Popover here — nesting a Popover
+  // inside a Select's own trigger caused the just-opened panel to read the
+  // click that picked "Custom" (which closes Select's own dropdown) as an
+  // outside click on itself, closing it again on the same frame.
+  useEffect(() => {
+    if (!showCustomPanel) return;
+    function handleOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowCustomPanel(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [showCustomPanel]);
 
   // Selecting "custom" from the dropdown doesn't commit anything yet — it
-  // only opens the date-range popover. The visible selection (and onChange)
-  // only updates once the user clicks "Terapkan", so dismissing the popover
+  // only opens the date-range panel. The visible selection (and onChange)
+  // only updates once the user clicks "Terapkan", so dismissing the panel
   // without applying leaves the previous preset active.
   function handleSelect(next: string) {
     const nextPreset = next as FilterPreset;
     if (nextPreset === "custom") {
-      setPopoverOpen(true);
+      setShowCustomPanel(true);
       return;
     }
+    setShowCustomPanel(false);
     setPreset(nextPreset);
     onChange({ preset: nextPreset, ...presetRange(nextPreset) });
   }
 
   function applyCustom() {
     setPreset("custom");
-    setPopoverOpen(false);
+    setShowCustomPanel(false);
     onChange({ preset: "custom", from: customFrom, to: customTo });
   }
 
   return (
-    <Select value={preset} onValueChange={handleSelect}>
-      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverAnchor asChild>
-          <SelectTrigger className="h-9 w-[150px] border-line bg-gray-bg text-[11.5px] font-semibold text-ink-2">
-            <SelectValue>{PRESET_LABELS[preset]}</SelectValue>
-          </SelectTrigger>
-        </PopoverAnchor>
-        <PopoverContent className="w-64" align="start">
+    <div ref={containerRef} className="relative">
+      <Select value={preset} onValueChange={handleSelect}>
+        <SelectTrigger className="h-9 w-[150px] border-line bg-gray-bg text-[11.5px] font-semibold text-ink-2">
+          <SelectValue>{PRESET_LABELS[preset]}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="week">{PRESET_LABELS.week}</SelectItem>
+          <SelectItem value="month">{PRESET_LABELS.month}</SelectItem>
+          <SelectItem value="year">{PRESET_LABELS.year}</SelectItem>
+          <SelectItem value="custom">{PRESET_LABELS.custom}</SelectItem>
+        </SelectContent>
+      </Select>
+      {showCustomPanel && (
+        <div className="absolute right-0 top-full z-50 mt-1.5 w-64 rounded-md border border-line bg-card p-4 shadow-md">
           <div className="flex flex-col gap-2.5">
             <label className="flex flex-col gap-1 text-[11.5px] font-semibold text-ink-2">
               Dari
@@ -111,14 +133,8 @@ export function FilterBar({
               Terapkan
             </Button>
           </div>
-        </PopoverContent>
-      </Popover>
-      <SelectContent>
-        <SelectItem value="week">{PRESET_LABELS.week}</SelectItem>
-        <SelectItem value="month">{PRESET_LABELS.month}</SelectItem>
-        <SelectItem value="year">{PRESET_LABELS.year}</SelectItem>
-        <SelectItem value="custom">{PRESET_LABELS.custom}</SelectItem>
-      </SelectContent>
-    </Select>
+        </div>
+      )}
+    </div>
   );
 }

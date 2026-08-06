@@ -11,6 +11,7 @@ import { mapFirebaseAuthError } from "@/lib/firebase/auth-errors";
 import { signInSchema } from "@/features/auth/schemas";
 import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
+import { useBusinesses } from "@/features/app-shell/api/use-businesses";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -21,10 +22,27 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const initializing = useAuthStore((s) => s.initializing);
+  const { data: businesses } = useBusinesses(user?.uid);
 
+  // Redirect an already-authenticated visitor before the form ever renders —
+  // gating on `initializing` (and `user` while we're still resolving which
+  // business/onboarding-state they land on) avoids the sign-in form flashing
+  // for a moment before bouncing to the dashboard.
   useEffect(() => {
-    if (user) router.push("/overview");
-  }, [user, router]);
+    if (initializing || !user || !businesses) return;
+    const businessDoc = businesses[0];
+    if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
+    router.replace((businessDoc?.connectedPlatforms?.length ?? 0) > 0 ? "/overview" : "/onboarding");
+  }, [initializing, user, businesses, router]);
+
+  if (initializing || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <span className="size-5 animate-spin rounded-full border-2 border-line border-t-accent" />
+      </div>
+    );
+  }
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();

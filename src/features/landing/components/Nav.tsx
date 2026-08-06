@@ -2,9 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "./BrandMark";
+import { useAuthStore } from "@/stores/auth";
+
+// Lazy: only visitors who are actually logged in should pay for the
+// Firestore SDK this pulls in (see NavAccountActions.tsx for why).
+const NavAccountActions = dynamic(() =>
+  import("./NavAccountActions").then((m) => m.NavAccountActions)
+);
 
 // Order matches the section order on the page, so clicking through the nav
 // always scrolls forward — never jumps back up to an earlier section.
@@ -19,6 +27,9 @@ const NAV_LINKS = [
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeId, setActiveId] = useState("");
+  const user = useAuthStore((s) => s.user);
+  const initializing = useAuthStore((s) => s.initializing);
+  const loggedIn = !initializing && Boolean(user);
 
   useEffect(() => {
     const sections = NAV_LINKS.map((link) => document.getElementById(link.id)).filter(
@@ -69,13 +80,19 @@ export function Nav() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" asChild>
-            <Link href="/sign-in">Masuk</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/sign-in">Coba Gratis</Link>
-          </Button>
+        <div className="hidden items-center gap-2.5 md:flex">
+          {loggedIn ? (
+            <NavAccountActions />
+          ) : !initializing ? (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/sign-in">Masuk</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/sign-in">Coba Gratis</Link>
+              </Button>
+            </>
+          ) : null}
         </div>
 
         <button
@@ -107,12 +124,24 @@ export function Nav() {
               </Link>
             );
           })}
-          <Link href="/sign-in" className="rounded-lg px-2 py-2 text-[13px] font-semibold text-ink-2">
-            Masuk
-          </Link>
-          <Button className="mt-1 w-full justify-center" asChild>
-            <Link href="/sign-in">Coba Gratis</Link>
-          </Button>
+          {loggedIn ? (
+            <NavAccountActions variant="mobile" onNavigate={() => setMenuOpen(false)} />
+          ) : !initializing ? (
+            <>
+              <Link
+                href="/sign-in"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-2 py-2 text-[13px] font-semibold text-ink-2"
+              >
+                Masuk
+              </Link>
+              <Button className="mt-1 w-full justify-center" asChild>
+                <Link href="/sign-in" onClick={() => setMenuOpen(false)}>
+                  Coba Gratis
+                </Link>
+              </Button>
+            </>
+          ) : null}
         </div>
       )}
     </header>
