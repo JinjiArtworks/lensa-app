@@ -4,6 +4,13 @@
 
 ---
 
+## Link Penting
+
+- **Repositori (GitHub, public):** https://github.com/JinjiArtworks/lensa-app (branch `main`)
+- **Live demo:** https://lensa-app-eight.vercel.app
+
+---
+
 ## 1. Produk yang Dipilih & Referensi
 
 **Produk:** Lensa — dashboard performa iklan omni-channel berbasis AI, dibangun sebagai prototype untuk BDD Assessment (Sr. Frontend).
@@ -44,11 +51,15 @@ Sign Up/Sign In → **Onboarding** (business setup) → **Binding** (connect pla
 
 **Perubahan mid-project yang signifikan:** Onboarding & Binding awalnya **1 layar gabungan** (pilih platform sekaligus jadi "syarat masuk" dashboard). Setelah dipakai, ketauan konsepnya ketuker: "punya bisnis" dan "connect platform" itu 2 concern yang beda, tapi kerasa numpuk jadi 1 formalitas sign-up. Dipisah total: Onboarding sekarang murni business setup (nama+kategori bisnis, 0 konten platform sama sekali), Binding jadi halaman/nav item sendiri buat connect platform, dengan confirm dialog sebelum simulasi bind ("Binding ke X? ... permanen sampe upgrade"). Ini contoh product-thinking pivot yang keluar dari observasi pemakaian, bukan dari rencana awal. *(`PROGRESS.md` sesi keempatbelas — "restrukturisasi besar".)*
 
+**Business Switcher (di sidebar)** sengaja jadi *echo* yang disadari dari "client switching" BDD.ai buat DM/AM (lihat perbandingan di §1) — bedanya konteks pemakaian: di Lensa, switcher ini buat **1 pemilik bisnis yang kebetulan punya beberapa bisnis berbeda** (misal toko Fashion + resto F&B), bukan buat staf agency yang kelola banyak client eksternal. Pola UI-nya mirip (dropdown pilih entitas aktif di sidebar), tapi konteks & kepemilikan datanya beda total — konsisten sama positioning self-serve vs internal-tool.
+
 ### 3.2 Monetisasi Free/Pro & rationale
 - **Free:** 1 bisnis, 1 platform (Meta *atau* TikTok, dipilih salah satu), AI Insight dasar.
 - **Pro:** multi-bisnis, unlimited platform, full AI Insight, export.
 
 Draf awal Free dapat **2 platform** — sengaja **dipersempit ke 1** biar gap benefit ke Pro lebih tegas & realistis buat model freemium (`business-plan.md` §3). Keputusan terkait yang juga direvisi di tengah jalan: awalnya user Free bisa **swap** platform kapan saja (klik platform terkunci → tawaran ganti/upgrade) — ini dianggap merusak value gap ke Pro (bebas ganti platform bikin batasan "1 platform" kerasa nggak beneran ngebatasin apa-apa). Fix: **binding Free sekarang permanen**, cuma upgrade ke Pro yang bisa buka platform kedua.
+
+**Penting buat diperjelas soal Billing:** halaman Billing/paket ini murni **UI simulasi** — nggak ada payment gateway API asli (Midtrans/Stripe/dst) di baliknya. Flow "Perpanjang Sekarang" & upgrade Free→Pro cuma animasi 3-tahap (`setTimeout`: konfirmasi → processing → sukses), TAPI **beneran nulis field `plan` ke Firestore** — jadi status plan (Free/Pro) itu real & ke-reflect ke seluruh app (gating, KPI, dst), cuma proses "pembayaran"-nya yang simulasi. Keputusan sadar (`decisions-log.md` §1.3) — integrasi payment gateway beneran adalah effort besar (sandbox, webhook, compliance) yang nggak nambah sinyal skill FE relevan buat assessment ini dibanding effort-nya.
 
 ### 3.3 AI Insight — evolusi terbesar di produk ini
 Ini bagian yang paling banyak iterasi product-thinking, jadi worth ditelusuri urutannya:
@@ -61,7 +72,21 @@ Ini bagian yang paling banyak iterasi product-thinking, jadi worth ditelusuri ur
 
 *Sumber: `feature-specs.md` §05, `business-plan.md` §3/§5, `PROGRESS.md` sesi keempatbelas (banyak entry berurutan).*
 
-### 3.4 Scope yang sengaja dipotong (dan kenapa)
+### 3.4 Landing page publik — konsep yang nggak ada di referensi
+BDD.ai Client Service adalah tool internal/authenticated — nggak butuh halaman publik buat akuisisi user baru. Lensa, sebagai produk self-serve SaaS, butuh itu: landing page (`/`) dengan hero, problem section, how-it-works, fitur, FAQ, testimoni, dan pricing (toggle Bulanan/Tahunan) buat calon pengguna yang belum tau produknya sama sekali — bagian yang langsung nyambung ke alasan teknis "kenapa Next.js bukan Vite" di §2 (kebutuhan SSR/SEO yang nggak akan ada kalau Lensa dirancang kayak BDD.ai/internal-only).
+
+Proses desainnya diiterasi dulu di Claude Artifact (draft HTML/CSS/JS interaktif) sebelum di-porting ke Next.js — beberapa ronde revisi berdasarkan feedback: copy diubah jadi "professional tapi santai", chart KPI diperluas dari CPA-only jadi multi-metrik (ROAS/CPA/CTR/Closing), FAQ dipindah ke tengah alur halaman (bukan disembunyikan di footer), pricing dapet toggle Bulanan/Tahunan.
+
+*Sumber: `PROGRESS.md` sesi kesembilan (landing redesign) & sesi kedelapan (audit awal).*
+
+### 3.5 Copy as Report & Export — dari kartu kurasi jadi screenshot halaman asli
+Iterasi awal: modal preview berisi ringkasan terkurasi (scope/ROAS/spend/catatan, atau daftar insight untuk AI Insight), tombol Copy/Download cuma nunjukin toast simulasi tanpa file/gambar beneran. Setelah dipakai, user minta sesuatu yang lebih literal: **screenshot/PDF beneran dari halaman yang lagi dibuka**, bukan kartu ringkasan buatan.
+
+Direvisi total: `CopyAsReportButton` sekarang capture elemen `<main>` (via `html2canvas`, otomatis exclude sidebar/navbar karena keduanya dirender di luar `<main>`) lalu copy sebagai gambar ke clipboard; `ExportPdfButton` capture yang sama lalu generate PDF (`jsPDF`, custom page-size mengikuti dimensi canvas asli) buat didownload. Elemen kontrol interaktif (filter dropdown, tombol report itu sendiri) disembunyikan dari hasil capture lewat atribut khusus (`data-report-hide`), biar hasilnya bersih kayak screenshot manual, bukan ikut nge-capture chrome UI-nya sendiri. Contoh lain user-flow yang berubah karena feedback pemakaian nyata, bukan asumsi di awal desain.
+
+*Sumber: `PROGRESS.md` sesi keempatbelas ("Copy as Report & Export as PDF diganti jadi whole-page capture").*
+
+### 3.6 Scope yang sengaja dipotong (dan kenapa)
 - **Compare 2 Platform** (Detail Dashboard): dicoba dibangun, lalu dicoret — kompleksitas UX 2-platform-berdampingan dianggap nggak sepadan sama value buat audiens business owner (bukan analyst); drill-down per-platform + tren performa dianggap lebih actionable.
 - **Ticket/Support System:** dicoret total dari scope — effort lebih baik dialokasikan ke core loop + monetization + memperdalam AI layer, dibanding fitur operasional yang nilai demo-nya rendah.
 - **Campaign management table** (Overview & Detail Platform): sempat dibangun, lalu **dihapus** setelah refleksi — tabelnya cuma nampilin data statis tanpa aksi kelola apapun, jadi bukan fitur beneran, cuma "kelihatan lengkap". KPI "Campaign Aktif" (angka doang) tetap ada karena itu genuinely metrik hitungan, bukan klaim fitur manajemen.
