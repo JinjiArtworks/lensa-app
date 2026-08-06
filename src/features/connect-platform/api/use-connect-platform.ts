@@ -40,18 +40,3 @@ export function useConnectPlatform(businessId: string | undefined) {
     },
   });
 }
-
-// Overwrites connectedPlatforms with just this one key — arrayUnion only adds, this swaps the slot.
-export function useSwitchPlatform(businessId: string | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (platformKey: string) => {
-      await updateDoc(doc(getFirestoreDb(), "businesses", businessId as string), {
-        connectedPlatforms: [platformKey],
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["business-platforms", businessId] });
-    },
-  });
-}

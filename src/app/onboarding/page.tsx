@@ -10,11 +10,7 @@ import { useUiStore } from "@/stores/ui";
 import { useAuthStore } from "@/stores/auth";
 import { useLogout } from "@/features/auth/use-logout";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
-import {
-  useConnectPlatform,
-  useConnectedPlatforms,
-  useSwitchPlatform,
-} from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectPlatform, useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
 
 const PLATFORMS = [
   { key: "meta", name: "Meta Ads", sub: "Facebook & Instagram Ads", ic: "M" },
@@ -41,9 +37,8 @@ export default function OnboardingPage() {
   const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const connectPlatform = useConnectPlatform(activeBusinessId);
-  const switchPlatform = useSwitchPlatform(activeBusinessId);
   const [connecting, setConnecting] = useState<PlatformKey | null>(null);
-  const [pendingSwitch, setPendingSwitch] = useState<PlatformKey | null>(null);
+  const [pendingUpgrade, setPendingUpgrade] = useState<PlatformKey | null>(null);
   const router = useRouter();
   const logout = useLogout();
 
@@ -55,7 +50,7 @@ export default function OnboardingPage() {
   function connect(key: PlatformKey) {
     if (connectedPlatforms.includes(key) || connecting) return;
     if (isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit)) {
-      setPendingSwitch(key);
+      setPendingUpgrade(key);
       return;
     }
     const platformName = PLATFORMS.find((p) => p.key === key)?.name ?? key;
@@ -69,23 +64,11 @@ export default function OnboardingPage() {
     }, 1100);
   }
 
-  function confirmSwitch() {
-    if (!pendingSwitch) return;
-    const platformName = PLATFORMS.find((p) => p.key === pendingSwitch)?.name ?? pendingSwitch;
-    switchPlatform.mutate(pendingSwitch, {
-      onSuccess: () => {
-        setPendingSwitch(null);
-        showToast(`Diganti ke ${platformName}`, "success");
-      },
-      onError: () => showToast(`Gagal ganti ke ${platformName}, coba lagi`, "error"),
-    });
-  }
-
   const anyConnected = connectedPlatforms.length > 0;
   const currentPlatformNames = PLATFORMS.filter((p) => connectedPlatforms.includes(p.key))
     .map((p) => p.name)
     .join(", ");
-  const pendingPlatformName = PLATFORMS.find((p) => p.key === pendingSwitch)?.name ?? "";
+  const pendingPlatformName = PLATFORMS.find((p) => p.key === pendingUpgrade)?.name ?? "";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-5 py-12 text-center">
@@ -96,8 +79,8 @@ export default function OnboardingPage() {
       <p className="mb-5 max-w-[400px] text-[13px] text-ink-3">
         {isFree ? (
           <>
-            Plan Free kamu bisa hubungkan <b className="text-ink-2">1 platform</b> (pilih salah satu). Upgrade ke Pro
-            buat hubungkan semuanya sekaligus.
+            Plan Free kamu bisa hubungkan <b className="text-ink-2">1 platform</b> (pilih salah satu) — pilihan ini
+            terkunci setelah connect, nggak bisa diganti kecuali upgrade ke Pro.
           </>
         ) : (
           <>Sesuai plan Pro, kamu bisa hubungkan Meta Ads &amp; TikTok Ads sebagai platform inti.</>
@@ -159,13 +142,13 @@ export default function OnboardingPage() {
               <div className="min-w-0 flex-1">
                 <div className="text-[13.5px] font-bold">{p.name}</div>
                 <div className="mt-0.5 text-[11.5px] text-ink-3">
-                  {isLocked ? "Klik buat ganti, atau upgrade ke Pro" : p.sub}
+                  {isLocked ? "Terkunci di plan Free — upgrade ke Pro buat hubungkan ini juga" : p.sub}
                 </div>
               </div>
               {isConnecting ? (
                 <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-line border-t-accent" />
               ) : isLocked ? (
-                <ProLockBadge tooltip="Ganti ke platform ini, atau upgrade ke Pro buat pakai keduanya" />
+                <ProLockBadge tooltip="Terkunci — upgrade ke Pro buat hubungkan platform ini juga" />
               ) : (
                 <div
                   className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 ${
@@ -182,7 +165,7 @@ export default function OnboardingPage() {
 
       <div className="mb-5 text-xs text-ink-3">
         {isFree
-          ? "Plan Free — hubungkan 1 platform buat lanjut. Mau hubungkan lebih dari 1? Upgrade ke Pro."
+          ? "Plan Free — hubungkan 1 platform buat lanjut, pilihan ini terkunci permanen. Mau hubungkan lebih dari 1? Upgrade ke Pro."
           : "Plan Pro — hubungkan minimal 1 platform buat lanjut, bisa tambah platform lain kapan saja"}
       </div>
 
@@ -196,20 +179,16 @@ export default function OnboardingPage() {
       </button>
 
       <ProUpgradeDialog
-        open={pendingSwitch !== null}
-        onOpenChange={(o) => !o && setPendingSwitch(null)}
-        title={`Ganti ke ${pendingPlatformName}?`}
+        open={pendingUpgrade !== null}
+        onOpenChange={(o) => !o && setPendingUpgrade(null)}
+        title={`${pendingPlatformName} terkunci`}
         description={
           <>
-            Plan Free cuma bisa 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan diganti
-            dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+            Plan Free cuma bisa 1 platform aktif, dan pilihan itu terkunci permanen setelah connect — kamu udah
+            connect <b>{currentPlatformNames}</b>. Upgrade ke Pro buat hubungkan <b>{pendingPlatformName}</b> juga
+            tanpa lepas yang sekarang.
           </>
         }
-        swapAction={{
-          label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
-          pending: switchPlatform.isPending,
-          onConfirm: confirmSwitch,
-        }}
       />
     </div>
   );

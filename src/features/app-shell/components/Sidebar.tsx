@@ -10,7 +10,7 @@ import { useUiStore, type DetailPlatformView } from "@/stores/ui";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
 import { useProGate } from "@/components/shared/use-pro-gate";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
-import { useConnectedPlatforms, useSwitchPlatform } from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
 import { DETAIL_VIEW_LABELS, DETAIL_VIEW_ORDER } from "@/features/detail-platform/lib/detail-view";
 import { BusinessSwitcher } from "./BusinessSwitcher";
@@ -135,21 +135,19 @@ function DetailPlatformNavItem({
   const Icon = item.icon;
   const router = useRouter();
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
-  const showToast = useUiStore((s) => s.showToast);
   const detailPlatformView = useUiStore((s) => s.detailPlatformView);
   const setDetailPlatformView = useUiStore((s) => s.setDetailPlatformView);
   const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
-  const switchPlatform = useSwitchPlatform(activeBusinessId);
-  const [pendingSwitch, setPendingSwitch] = useState<DetailPlatformView | null>(null);
+  const [pendingUpgrade, setPendingUpgrade] = useState<DetailPlatformView | null>(null);
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
 
   function isViewLocked(key: DetailPlatformView): boolean {
     return isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit);
   }
 
-  // Stored view can go stale (e.g. platform slot swapped from elsewhere) —
-  // snap back to a connected platform once that's locked.
+  // Stored view can go stale (e.g. plan downgraded elsewhere) — snap back to
+  // the one connected platform once the current selection is locked.
   useEffect(() => {
     if (connectedPlatforms.length === 0) return;
     if (!isFree || connectedPlatforms.includes(detailPlatformView)) return;
@@ -158,32 +156,18 @@ function DetailPlatformNavItem({
 
   function selectView(key: DetailPlatformView) {
     if (isViewLocked(key)) {
-      setPendingSwitch(key);
+      setPendingUpgrade(key);
       return;
     }
     setDetailPlatformView(key);
     router.push("/detail");
   }
 
-  function confirmSwitch() {
-    if (!pendingSwitch) return;
-    const platformName = PLATFORM_LABELS[pendingSwitch].name;
-    switchPlatform.mutate(pendingSwitch, {
-      onSuccess: () => {
-        setDetailPlatformView(pendingSwitch);
-        setPendingSwitch(null);
-        router.push("/detail");
-        showToast(`Diganti ke ${platformName}`, "success");
-      },
-      onError: () => showToast(`Gagal ganti ke ${platformName}, coba lagi`, "error"),
-    });
-  }
-
   const currentPlatformNames = connectedPlatforms
     .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
     .filter(Boolean)
     .join(", ");
-  const pendingPlatformName = pendingSwitch ? PLATFORM_LABELS[pendingSwitch].name : "";
+  const pendingPlatformName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
 
   return (
     <div>
@@ -223,23 +207,15 @@ function DetailPlatformNavItem({
         </div>
       )}
       <ProUpgradeDialog
-        open={pendingSwitch !== null}
-        onOpenChange={(o) => !o && setPendingSwitch(null)}
-        title={`Ganti ke ${pendingPlatformName}?`}
+        open={pendingUpgrade !== null}
+        onOpenChange={(o) => !o && setPendingUpgrade(null)}
+        title={`${pendingPlatformName} terkunci`}
         description={
           <>
-            Plan Free cuma bisa lihat 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan
-            diganti dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+            Plan Free cuma bisa 1 platform aktif, dan pilihan itu terkunci permanen setelah connect — kamu udah
+            connect <b>{currentPlatformNames}</b>. Upgrade ke Pro buat lihat <b>{pendingPlatformName}</b> juga tanpa
+            lepas yang sekarang.
           </>
-        }
-        swapAction={
-          pendingSwitch
-            ? {
-                label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
-                pending: switchPlatform.isPending,
-                onConfirm: confirmSwitch,
-              }
-            : undefined
         }
       />
     </div>

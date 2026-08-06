@@ -8,11 +8,7 @@ import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
-import {
-  useConnectPlatform,
-  useConnectedPlatforms,
-  useSwitchPlatform,
-} from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectPlatform, useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
 
 const PLATFORM_SUB: Record<PlatformKey, string> = {
   meta: "Facebook & Instagram Ads",
@@ -27,15 +23,14 @@ export function PlatformConnectionList() {
   const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const connectPlatform = useConnectPlatform(activeBusinessId);
-  const switchPlatform = useSwitchPlatform(activeBusinessId);
   const [connecting, setConnecting] = useState<PlatformKey | null>(null);
-  const [pendingSwitch, setPendingSwitch] = useState<PlatformKey | null>(null);
+  const [pendingUpgrade, setPendingUpgrade] = useState<PlatformKey | null>(null);
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
 
   function connect(key: PlatformKey) {
     if (connectedPlatforms.includes(key) || connecting) return;
     if (isPlatformLocked(false, connectedPlatforms.length, platformLimit)) {
-      setPendingSwitch(key);
+      setPendingUpgrade(key);
       return;
     }
     const platformName = PLATFORM_LABELS[key].name;
@@ -49,23 +44,11 @@ export function PlatformConnectionList() {
     }, 1100);
   }
 
-  function confirmSwitch() {
-    if (!pendingSwitch) return;
-    const platformName = PLATFORM_LABELS[pendingSwitch].name;
-    switchPlatform.mutate(pendingSwitch, {
-      onSuccess: () => {
-        setPendingSwitch(null);
-        showToast(`Diganti ke ${platformName}`, "success");
-      },
-      onError: () => showToast(`Gagal ganti ke ${platformName}, coba lagi`, "error"),
-    });
-  }
-
   const currentPlatformNames = connectedPlatforms
     .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
     .filter(Boolean)
     .join(", ");
-  const pendingPlatformName = pendingSwitch ? PLATFORM_LABELS[pendingSwitch].name : "";
+  const pendingPlatformName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
 
   return (
     <div className="flex max-w-[480px] flex-col gap-2.5">
@@ -97,7 +80,7 @@ export function PlatformConnectionList() {
               <div className="min-w-0 flex-1">
                 <div className="text-[13.5px] font-bold">{p.name}</div>
                 <div className="mt-0.5 text-[11.5px] text-ink-3">
-                  {isLocked ? "Klik buat ganti, atau upgrade ke Pro" : PLATFORM_SUB[key]}
+                  {isLocked ? "Terkunci di plan Free — upgrade ke Pro buat hubungkan ini juga" : PLATFORM_SUB[key]}
                 </div>
               </div>
               {isConnecting ? (
@@ -107,7 +90,7 @@ export function PlatformConnectionList() {
                   <Check className="size-3.5 text-white" />
                 </div>
               ) : isLocked ? (
-                <ProLockBadge tooltip="Ganti ke platform ini, atau upgrade ke Pro buat pakai keduanya" />
+                <ProLockBadge tooltip="Terkunci — upgrade ke Pro buat hubungkan platform ini juga" />
               ) : (
                 <button
                   type="button"
@@ -122,10 +105,10 @@ export function PlatformConnectionList() {
             {isLocked && (
               <button
                 type="button"
-                onClick={() => setPendingSwitch(key)}
+                onClick={() => setPendingUpgrade(key)}
                 className="mt-2.5 w-full rounded-lg border border-line py-1.5 text-[11px] font-semibold text-ink-2"
               >
-                Ganti ke platform ini
+                Upgrade ke Pro buat buka
               </button>
             )}
           </div>
@@ -133,20 +116,16 @@ export function PlatformConnectionList() {
       })}
 
       <ProUpgradeDialog
-        open={pendingSwitch !== null}
-        onOpenChange={(o) => !o && setPendingSwitch(null)}
-        title={`Ganti ke ${pendingPlatformName}?`}
+        open={pendingUpgrade !== null}
+        onOpenChange={(o) => !o && setPendingUpgrade(null)}
+        title={`${pendingPlatformName} terkunci`}
         description={
           <>
-            Plan Free cuma bisa 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan diganti
-            dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+            Plan Free cuma bisa 1 platform aktif, dan pilihan itu terkunci permanen setelah connect — kamu udah
+            connect <b>{currentPlatformNames}</b>. Upgrade ke Pro buat hubungkan <b>{pendingPlatformName}</b> juga
+            tanpa lepas yang sekarang.
           </>
         }
-        swapAction={{
-          label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
-          pending: switchPlatform.isPending,
-          onConfirm: confirmSwitch,
-        }}
       />
     </div>
   );
