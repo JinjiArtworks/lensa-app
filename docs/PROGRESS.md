@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — konfirmasi upgrade/downgrade plan beneran nulis Firestore, fix cache invalidation biar BusinessSwitcher ikut refresh)
+**Last updated:** 2026-08-06 (sesi keempatbelas — bug ketemu user: downgrade ke Free nggak ngurangin binding 2-platform yang dibuat pas Pro, difix — sekarang trim otomatis balik ke 1 platform pertama)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -144,6 +144,11 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **Dikonfirmasi: beneran real write** — `useUpdateBusinessPlan` cuma `updateDoc(businesses/{id}, { plan })`, bukan simulasi. Cuma proses pembayarannya yang mock (sengaja).
 - **Tombol "back to Free" ternyata udah ada** — `PackageComparison`'s kartu Free punya "Downgrade ke Free" (muncul kapan pun plan aktif Pro), pakai mutation yang sama. Nggak perlu bikin baru.
 - **1 bug ketemu pas ngecek:** `useUpdateBusinessPlan`'s `onSuccess` cuma invalidate query key `["business-plan", businessId]` — `BusinessSwitcher` baca plan dari query key **beda** (`["businesses", ownerId]`), jadi abis ganti plan lewat Billing, switcher-nya nggak auto-refresh (baru keupdate kalau ada trigger lain atau reload manual). Fix: `onSuccess` sekarang invalidate keduanya.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
+
+**Lanjut sesi keempatbelas — user coba alur demo (upgrade ke Pro → binding 2 platform → downgrade ke Free) dan nemu bug: kedua platform tetap kebind, nggak balik ke 1:**
+- **Root cause:** `useUpdateBusinessPlan` cuma nulis field `plan`, nggak pernah nyentuh `connectedPlatforms` — rule "Free cuma 1 platform, permanen sampe upgrade" (`useProGate`/Binding) cuma nge-block **nambah** slot ke-2 ke depan, nggak ada logic yang jalan **ke belakang** pas plan turun lagi.
+- **Fix:** mutation sekarang cek — kalau target plan `"free"` dan `connectedPlatforms` di Firestore panjangnya >1, sekalian trim ke elemen pertama (`connectedPlatforms[0]` — platform yang paling duluan di-bind) dalam 1 `updateDoc` yang sama. Query key `["business-platforms", businessId]` (dibaca Sidebar submenu & Binding) ikut di-invalidate di `onSuccess`, plus `Sidebar`'s existing snap-back `useEffect` (`detailPlatformView` balik ke platform pertama kalau yang lagi dipilih ternyata udah nggak connected) otomatis kepakai buat beresin state Detail Platform juga — nggak perlu logic baru di situ.
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
