@@ -9,6 +9,7 @@ import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
+import { TargetTracker } from "@/features/overview-dashboard/components/TargetTracker";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
 import { PlatformPeriodCompareChart } from "@/features/detail-platform/components/PlatformPeriodCompareChart";
@@ -75,6 +76,11 @@ export default function DetailPlatformPage() {
                 </div>
               </div>
               <PlatformKpiGrid entries={kpiEntries} />
+              <TargetTracker
+                actuals={{ roas: data.PLATFORM_RAW[platform].current.roas, closing: data.PLATFORM_RAW[platform].current.closing }}
+                title="Target Bulan Ini"
+                subtitle={`Progres ${activePlatform.name} dibanding target bisnis yang kamu set — bukan gabungan semua platform.`}
+              />
               <PlatformTrendChart
                 data={data.PLATFORM_TREND[platform]}
                 color={PLATFORM_CHART_COLOR[platform]}

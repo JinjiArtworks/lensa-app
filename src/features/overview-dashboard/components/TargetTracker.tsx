@@ -13,7 +13,15 @@ interface Row {
   fmt: (v: number) => string;
 }
 
-export function TargetTracker({ actuals }: { actuals: OverviewData["ACTUALS"] }) {
+export function TargetTracker({
+  actuals,
+  title = "Target Bulan Ini",
+  subtitle = "Progres aktual dibanding target yang kamu set.",
+}: {
+  actuals: OverviewData["ACTUALS"];
+  title?: string;
+  subtitle?: string;
+}) {
   const [modalOpen, setModalOpen] = useState(false);
   // Computed inside the component (not as a module-level constant) so that saving new
   // targets in SetTargetModal — which mutates the TARGETS object in place — is reflected
@@ -26,8 +34,8 @@ export function TargetTracker({ actuals }: { actuals: OverviewData["ACTUALS"] })
     <div className="mb-4 rounded-2xl border border-line bg-card p-4">
       <div className="mb-3.5 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold">Target Bulan Ini</h3>
-          <div className="mt-0.5 text-[11.5px] text-ink-3">Progres aktual dibanding target yang kamu set.</div>
+          <h3 className="text-sm font-bold">{title}</h3>
+          <div className="mt-0.5 text-[11.5px] text-ink-3">{subtitle}</div>
         </div>
         <Button variant="ghost" onClick={() => setModalOpen(true)}>
           Set target
