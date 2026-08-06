@@ -15,12 +15,12 @@ export function KpiCard({ label, value, cls, sub }: { label: string; value: stri
 export function KpiGrid({ kpiRow1, kpiRow2 }: { kpiRow1: OverviewData["KPI_ROW_1"]; kpiRow2: OverviewData["KPI_ROW_2"] }) {
   return (
     <>
-      <div className="mb-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2">
+      <div className="mb-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[640px]:grid-cols-1">
         {kpiRow1.map((kpi) => (
           <KpiCard key={kpi.label} {...kpi} />
         ))}
       </div>
-      <div className="mb-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2">
+      <div className="mb-3 grid grid-cols-4 gap-3 max-[980px]:grid-cols-2 max-[640px]:grid-cols-1">
         {kpiRow2.map((kpi) => (
           <KpiCard key={kpi.label} {...kpi} />
         ))}

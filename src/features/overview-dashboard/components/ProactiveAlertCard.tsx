@@ -19,7 +19,7 @@ export function ProactiveAlertCard({ platforms }: { platforms: OverviewData["PLA
         </b>{" "}
         tapi closing stagnan minggu ini — cek AI Insight untuk saran.
       </div>
-      <span className="whitespace-nowrap text-xs font-bold text-accent">Lihat detail →</span>
+      <span className="shrink-0 whitespace-nowrap text-xs font-bold text-accent">Lihat detail →</span>
     </Link>
   );
 }

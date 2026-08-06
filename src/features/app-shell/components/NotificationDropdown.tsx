@@ -21,7 +21,7 @@ export function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 z-[55] max-h-[70vh] w-80 overflow-y-auto rounded-2xl border border-line bg-card p-4 shadow-xl">
+        <div className="absolute right-0 top-12 z-[55] max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-line bg-card p-4 shadow-xl">
           <div className="mb-3.5 flex items-center justify-between">
             <h3 className="text-sm font-bold">Activity Feed</h3>
             <button type="button" aria-label="tutup" onClick={() => setOpen(false)} className="text-ink-3">
