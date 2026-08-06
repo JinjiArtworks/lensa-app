@@ -1,7 +1,5 @@
 "use client";
 
-import { Lock } from "lucide-react";
-import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import { useUiStore } from "@/stores/ui";
 import type { ImpactLevel, InsightItem } from "../types";
 
@@ -11,20 +9,11 @@ const IMPACT_TONE: Record<ImpactLevel, { bg: string; fg: string }> = {
   Rendah: { bg: "var(--gray-bg)", fg: "var(--ink-2)" },
 };
 
-export function PriorityPanel({
-  items,
-  isFree,
-  onUpgradeClick,
-}: {
-  items: InsightItem[];
-  isFree: boolean;
-  onUpgradeClick: () => void;
-}) {
+// Bebas diakses Free maupun Pro — ini teaser nilai AI Insight (ringkasan +
+// rekomendasi teratas), bukan bagian yang di-Pro-gate. Cuma grid "Semua
+// Insight" (kategori Perlu Aksi/Rekomendasi lengkap) yang tetap Pro-only.
+export function PriorityPanel({ items }: { items: InsightItem[] }) {
   const showToast = useUiStore((s) => s.showToast);
-  // Free-accessible (Positif) items first, same principle as InsightGrid's
-  // category grouping — open content ahead of what's locked, not interleaved.
-  const visible = isFree ? items.filter((it) => it.category === "positif") : items;
-  const lockedCount = isFree ? items.length - visible.length : 0;
 
   return (
     <div className="mb-4 rounded-2xl border border-line bg-card p-5">
@@ -34,7 +23,7 @@ export function PriorityPanel({
         <div className="py-5 text-center text-xs text-ink-3">Semua metrik dalam kondisi baik — belum ada aksi prioritas periode ini.</div>
       ) : (
         <div className="mt-3.5">
-          {visible.map((it, idx) => {
+          {items.map((it, idx) => {
             const tone = IMPACT_TONE[it.impact];
             return (
               <div key={it.id} className="flex items-start gap-3.5 border-b border-line-2 py-3.5 last:border-b-0">
@@ -63,22 +52,6 @@ export function PriorityPanel({
               </div>
             );
           })}
-          {lockedCount > 0 && (
-            <div className="flex items-center gap-3 border-t border-line-2 py-3 first:border-t-0">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-gray-bg text-ink-2">
-                <Lock className="size-3.5" />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-[12.5px] font-bold">
-                  {lockedCount} rekomendasi prioritas lain terkunci
-                  <ProLockBadge tooltip="Rekomendasi prioritas Perlu Aksi & Rekomendasi cuma tersedia di plan Pro" />
-                </div>
-                <button type="button" onClick={onUpgradeClick} className="text-[11.5px] font-bold text-accent-text">
-                  Upgrade ke Pro
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

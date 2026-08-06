@@ -2,9 +2,9 @@ import type { BenchmarkMetric, BudgetRecommendation, InsightItem, PeriodInsightD
 
 export const CATEGORY_FILTER_OPTIONS: { value: "all" | InsightItem["category"]; label: string }[] = [
   { value: "all", label: "Semua" },
+  { value: "positif", label: "Positif" },
   { value: "anomali", label: "Perlu Aksi" },
   { value: "rekomendasi", label: "Rekomendasi" },
-  { value: "positif", label: "Positif" },
 ];
 
 export const PLATFORM_FILTER_OPTIONS: { value: "all" | "meta" | "tiktok"; label: string }[] = [

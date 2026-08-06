@@ -67,10 +67,10 @@ export default function InsightPage() {
         </div>
       </div>
 
-      <InsightSummaryCard stats={stats} isFree={isFree} compareLine={getCompareLine(range.preset)} />
+      <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} />
 
       <div className="mb-5">
-        <PriorityPanel items={priorityItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
+        <PriorityPanel items={priorityItems} />
       </div>
 
       <Tabs defaultValue="insights">

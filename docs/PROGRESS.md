@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — AI Insight dirombak total secara visual: tab "Semua Insight"/"Benchmark & Budget", card disederhanain, kategori "Anomali" di-rename jadi "Perlu Aksi", nav CTA & feedback icon dihapus)
+**Last updated:** 2026-08-06 (sesi keempatbelas — Ringkasan & Rekomendasi Prioritas di AI Insight dibuka jadi free buat semua plan, bukan cuma Pro; filter kategori diurutin ulang)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -38,6 +38,14 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
   4. **`InsightSummaryCard` dibenerin & diringkas lebih jauh** — user screenshot nunjukin 2 icon gembok terpisah per stat locked (`Lock` eksplisit + `ProLockBadge` yang ternyata **sudah** include icon gembok sendiri di dalamnya, jadi dobel — bug lama yang kebawa dari `InsightStatsRow` versi asli, cuma baru kelihatan jelas di card yang lebih besar). Fix: buat Free, 2 stat locked digabung jadi **1 blok** ("🔒 Perlu aksi segera & Rekomendasi baru [PRO]") bukan 2 blok terpisah masing-masing dengan gembok+badge sendiri.
 - Verifikasi ulang: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` malah turun dikit ke 10.1KB setelah icon feedback & `Link` branch dibuang).
 - **Belum smoke test browser** — user minta port dev server (3000-3002, ketemu 1 leftover `next-server` v16.2.1 dari repo lain juga) di-kill total buat testing manual sendiri, jadi verifikasi visual final ada di tangan user.
+
+**Lanjut sesi keempatbelas — user minta "Total Insight" (kartu ringkasan) dan "Rekomendasi Prioritas" dibebaskan buat plan Free, bukan direservasi Pro; juga urutan filter kategori diubah:**
+- **Kenapa (koreksi keputusan monetisasi sebelumnya):** kedua section ini sebelumnya ikut Pro-gate (`InsightSummaryCard`: 2 dari 3 stat locked buat Free; `PriorityPanel`: cuma item kategori Positif yang keliatan, sisanya diringkas jadi baris "N rekomendasi prioritas lain terkunci"). User memutuskan keduanya jadi **teaser nilai AI yang selalu terbuka** — cuma grid "Semua Insight" (browsing lengkap kategori Perlu Aksi/Rekomendasi) yang tetap Pro-only, sesuai `business-plan.md` §5 (diupdate sekalian buat catat revisi ini).
+- **`InsightSummaryCard.tsx`**: prop `isFree` dibuang, semua 3 stat (Total insight/Perlu aksi segera/Rekomendasi baru) sekarang selalu nampilin angka asli — nggak ada lagi cabang locked/`Lock`/`ProLockBadge`.
+- **`PriorityPanel.tsx`**: prop `isFree`/`onUpgradeClick` dibuang, filter `category === "positif"` buat Free dihapus (semua item priority — termasuk yang kategori Perlu Aksi/Rekomendasi — sekarang keliatan ke semua plan), baris "N rekomendasi prioritas lain terkunci" dihapus total (nggak ada lagi konten untuk disembunyiin).
+- **`page.tsx`** disesuaikan (kedua komponen nggak lagi terima `isFree`/`onUpgradeClick`) — `isFree`/`upgradeOpen`/`ProUpgradeDialog` tetap dipakai buat `InsightGrid` (grid "Semua Insight" tetap Pro-gate per kategori, tidak berubah).
+- **Filter kategori diurutin ulang**: `Semua → Positif → Perlu Aksi → Rekomendasi` (sebelumnya Semua/Perlu Aksi/Rekomendasi/Positif) — matching urutan grouping yang udah dipakai `InsightGrid` (`CATEGORY_ORDER`).
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` turun ke 9.9KB — komponen makin ringan setelah logic lock dibuang).
 
 **Sesi keempatbelas (2026-08-06) — retest sign-up di Vercel dikonfirmasi jalan, fix presisi angka rupiah, lalu mulai "Dashboard Revamp" (inisiatif baru di luar checklist Phase 4, permintaan langsung user): Phase 1/7 selesai — global components + Pro-gating reusable, dieksekusi via brainstorming → writing-plans → subagent-driven-development:**
 - **Retest sign-up/login Vercel (dari catatan sesi ketigabelas) — dikonfirmasi user langsung, berhasil.**
