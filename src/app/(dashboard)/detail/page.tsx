@@ -6,13 +6,19 @@ import { FilterBar, initialFilterValue, type FilterPreset, type FilterValue } fr
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
 import type { ExportReportData } from "@/components/shared/ExportReportModal";
+import { useProGate } from "@/components/shared/use-pro-gate";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
+import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
 import { PlatformSwitcher, type PlatformKey } from "@/features/detail-platform/components/PlatformSwitcher";
 import { PlatformKpiGrid } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
 import { PlatformCampaignTable } from "@/features/detail-platform/components/PlatformCampaignTable";
+import { useConnectedPlatforms, useSwitchPlatform } from "@/features/connect-platform/api/use-connect-platform";
+
+const PLATFORM_KEYS = Object.keys(PLATFORM_LABELS) as PlatformKey[];
 
 function rangeLabel(preset: FilterPreset): string {
   switch (preset) {
@@ -29,12 +35,45 @@ function rangeLabel(preset: FilterPreset): string {
 
 export default function DetailPlatformPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
+  const showToast = useUiStore((s) => s.showToast);
   const { lastSyncedAt } = useSyncStore();
   const [platform, setPlatform] = useState<PlatformKey>("meta");
   const [range, setRange] = useState<FilterValue>(initialFilterValue("year"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey);
+  const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
+  const switchPlatform = useSwitchPlatform(activeBusinessId);
+  const [pendingSwitch, setPendingSwitch] = useState<PlatformKey | null>(null);
+  const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
+
+  function selectPlatform(key: PlatformKey) {
+    if (isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit)) {
+      setPendingSwitch(key);
+      return;
+    }
+    setPlatform(key);
+  }
+
+  function confirmSwitch() {
+    if (!pendingSwitch) return;
+    const platformName = PLATFORM_LABELS[pendingSwitch].name;
+    switchPlatform.mutate(pendingSwitch, {
+      onSuccess: () => {
+        setPlatform(pendingSwitch);
+        setPendingSwitch(null);
+        showToast(`Diganti ke ${platformName}`, "success");
+      },
+      onError: () => showToast(`Gagal ganti ke ${platformName}, coba lagi`, "error"),
+    });
+  }
+
+  const currentPlatformNames = connectedPlatforms
+    .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
+    .filter(Boolean)
+    .join(", ");
+  const pendingPlatformName = pendingSwitch ? PLATFORM_LABELS[pendingSwitch].name : "";
 
   return (
     <div>
@@ -48,7 +87,27 @@ export default function DetailPlatformPage() {
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} />
         </div>
       </div>
-      <PlatformSwitcher active={platform} onSelect={setPlatform} />
+      <PlatformSwitcher
+        active={platform}
+        onSelect={selectPlatform}
+        isLocked={(key) => isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit)}
+      />
+      <ProUpgradeDialog
+        open={pendingSwitch !== null}
+        onOpenChange={(o) => !o && setPendingSwitch(null)}
+        title={`Ganti ke ${pendingPlatformName}?`}
+        description={
+          <>
+            Plan Free cuma bisa lihat 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan
+            diganti dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+          </>
+        }
+        swapAction={{
+          label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
+          pending: switchPlatform.isPending,
+          onConfirm: confirmSwitch,
+        }}
+      />
       {isError ? (
         <div className="py-10 text-center text-xs text-red">
           Gagal memuat data platform.{" "}

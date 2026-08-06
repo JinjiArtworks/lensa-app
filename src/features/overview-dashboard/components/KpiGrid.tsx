@@ -1,6 +1,6 @@
 import type { OverviewData } from "../mock-data";
 
-function KpiCard({ label, value, cls, sub }: { label: string; value: string; cls: "up" | "down" | ""; sub: string }) {
+export function KpiCard({ label, value, cls, sub }: { label: string; value: string; cls: "up" | "down" | ""; sub: string }) {
   return (
     <div className="rounded-2xl border border-line bg-card p-4">
       <div className="mb-2 text-xs text-ink-2">{label}</div>
