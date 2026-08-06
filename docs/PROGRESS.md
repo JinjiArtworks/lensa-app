@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — hapus klaim "unlimited anggota tim" dari benefit Pro (fitur nggak pernah ada), tambah chevron submenu Detail Platform, ProLockBadge sekarang ada teks "Pro")
+**Last updated:** 2026-08-06 (sesi keempatbelas — Settings page dihapus total, Binding page platform card jadi 2-kolom bersisian)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -120,6 +120,11 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **Chevron ditambah di nav item "Detail Platform"** — sebelumnya nggak ada indikator expand/collapse sama sekali buat submenu-nya. Sekarang `ChevronRight` (submenu ketutup) berubah jadi `ChevronDown` (submenu kebuka) sesuai state `active`.
 - **`ProLockBadge` (dipakai di Billing/Detail Platform submenu/Binding) sekarang bukan cuma icon gembok** — ditambah badge kecil teks "Pro" (`bg-accent-bg`/`text-accent-text`) di sebelah icon-nya, biar makna "fitur ini Pro-only" lebih eksplisit ketimbang cuma icon abstrak. Sidebar's Detail Platform submenu yang sebelumnya pakai `&lt;Lock&gt;` mentah langsung (bukan `ProLockBadge`) disatuin ke komponen shared ini juga, biar 1 sumber styling buat semua lock indicator di app.
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (17 route).
+
+**Lanjut sesi keempatbelas — 2 perubahan lagi dari user:**
+- **Settings page dihapus total** ("nggak berguna") — route `(dashboard)/settings/`, folder `features/settings/` (`SettingsTabs`/`NotificationsTab`/`SecurityTab`/`ToggleSwitch`/`mock-data.ts`) semua dihapus. Sidebar: nav item "Settings" di grup "Lainnya" dihapus, icon gear shortcut di footer sidebar (link ke `/settings` di samping tombol Keluar) juga dihapus — bukan cuma nav item doang, ketauan pas dicek ada 2 tempat yang link ke situ. Import `Settings` icon dari `lucide-react` ikut dibuang karena udah nggak dipake.
+- **Binding page — layout kartu platform diganti**: sebelumnya list vertikal 1-kolom (row horizontal panjang: icon+teks+aksi sejajar). Sekarang `grid grid-cols-2` (2 kartu bersisian kiri-kanan, turun ke 1 kolom di ≤640px), tiap kartu direstruktur jadi vertikal-center (icon di atas, nama+subtext di tengah, status/aksi di bawah) biar bentuknya persegi/rectangle, bukan strip tipis memanjang.
+- Verifikasi: `tsc --noEmit` bersih (sempet kena stale `.next` type cache nunjuk ke route `/settings` yang baru dihapus — pola yang sama kayak insiden sebelumnya, `rm -rf .next` langsung beres), `lint` bersih, `next build` sukses — **16 route** (turun dari 17, `/settings` udah nggak ada).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.
@@ -337,9 +342,8 @@ Semua plan Phase 0/1 ada di `plans/plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `su
 | `/overview` | Dashboard Overview | ✅ UI lengkap, mock data lokal + Sync button + Copy as report |
 | `/detail` | Detail Platform | ✅ Switcher + KPI grid (8 metrik) + trend chart (Spend/Closing toggle) + campaign table + Copy as report, semua ke-filter sesuai platform aktif |
 | `/billing` | Billing | ✅ Tab Ringkasan + Paket Tersedia + modal payment gateway simulasi lengkap + Download invoice (header & per-row) |
-| `/settings` | Settings | ✅ Tab Team & Akses (+invite modal) + Notifikasi (toggle) + Keamanan (2FA+audit log) lengkap |
 | `/insight` | AI Insight | ✅ Stats row + banner perbandingan periode + Rekomendasi Prioritas + Benchmark Industri + Rekomendasi Alokasi Budget + toolbar (periode/platform/kategori) + grid 36 template (12/periode) + Sync & Analisis Ulang |
-| `/connect-platform` | Connect Platform (dalam dashboard) | ✅ selesai |
+| `/binding` | Binding (platform connect, dulu `/connect-platform` — di-rename + Onboarding/Binding split, lihat entry sesi ini) | ✅ Real `connectedPlatforms` Firestore, confirm dialog sebelum simulasi bind, lock+upgrade kalau Free udah kena limit |
 | `/ketentuan-layanan` | Ketentuan Layanan (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
 | `/kebijakan-privasi` | Kebijakan Privasi (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
 

@@ -11,7 +11,6 @@ import {
   BarChart3,
   Sparkles,
   CreditCard,
-  Settings,
   Plus,
   LogOut,
 } from "lucide-react";
@@ -47,7 +46,6 @@ export const NAV_ITEMS = {
   ],
   lainnya: [
     { href: "/billing", label: "Billing", icon: CreditCard },
-    { href: "/settings", label: "Settings", icon: Settings },
     { href: "/binding", label: "Binding", icon: Plus },
   ],
 };
@@ -94,9 +92,6 @@ export function Sidebar() {
           <div className="truncate text-[12.5px] font-bold">{name}</div>
           <div className="text-[10.5px] text-ink-3">Owner</div>
         </div>
-        <Link href="/settings" className="shrink-0 text-ink-3 hover:text-ink-2" title="Settings">
-          <Settings className="size-4" />
-        </Link>
         <button
           type="button"
           onClick={logout}

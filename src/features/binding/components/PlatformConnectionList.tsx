@@ -62,7 +62,7 @@ export function PlatformConnectionList() {
   const pendingBindName = pendingBind ? PLATFORM_LABELS[pendingBind].name : "";
 
   return (
-    <div className="flex max-w-[480px] flex-col gap-2.5">
+    <div className="grid max-w-[560px] grid-cols-2 gap-3.5 max-[640px]:grid-cols-1">
       {PLATFORM_KEYS.map((key) => {
         const p = PLATFORM_LABELS[key];
         const isConnected = connectedPlatforms.includes(key);
@@ -72,7 +72,7 @@ export function PlatformConnectionList() {
         return (
           <div
             key={key}
-            className={`rounded-xl border-2 p-3.5 ${
+            className={`flex flex-col items-center gap-2.5 rounded-xl border-2 p-4 text-center ${
               isConnected
                 ? "border-green bg-green-bg"
                 : isLocked
@@ -80,44 +80,42 @@ export function PlatformConnectionList() {
                   : "border-line bg-card"
             }`}
           >
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                  isConnected ? "bg-green text-white" : "bg-gray-bg text-ink-2"
-                }`}
-              >
-                <PlatformIcon platformKey={key} className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[13.5px] font-bold">{p.name}</div>
-                <div className="mt-0.5 text-[11.5px] text-ink-3">
-                  {isLocked ? "Terkunci di plan Free — upgrade ke Pro buat hubungkan ini juga" : PLATFORM_SUB[key]}
-                </div>
-              </div>
-              {isConnecting ? (
-                <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-line border-t-accent" />
-              ) : isConnected ? (
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-green bg-green">
-                  <Check className="size-3.5 text-white" />
-                </div>
-              ) : isLocked ? (
-                <ProLockBadge tooltip="Terkunci — upgrade ke Pro buat hubungkan platform ini juga" />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => requestBind(key)}
-                  className="shrink-0 rounded-lg bg-accent px-2.5 py-1.5 text-[11px] font-bold text-ink"
-                >
-                  Hubungkan
-                </button>
-              )}
+            <div
+              className={`flex size-11 shrink-0 items-center justify-center rounded-lg ${
+                isConnected ? "bg-green text-white" : "bg-gray-bg text-ink-2"
+              }`}
+            >
+              <PlatformIcon platformKey={key} className="size-6" />
             </div>
-            {isConnected && <div className="mt-2.5 text-[11px] text-ink-3">Terakhir sync: baru saja</div>}
+            <div className="min-w-0">
+              <div className="text-[13.5px] font-bold">{p.name}</div>
+              <div className="mt-0.5 text-[11.5px] text-ink-3">
+                {isLocked ? "Terkunci di plan Free — upgrade ke Pro buat hubungkan ini juga" : PLATFORM_SUB[key]}
+              </div>
+            </div>
+            {isConnecting ? (
+              <span className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-line border-t-accent" />
+            ) : isConnected ? (
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-green bg-green">
+                <Check className="size-3.5 text-white" />
+              </div>
+            ) : isLocked ? (
+              <ProLockBadge tooltip="Terkunci — upgrade ke Pro buat hubungkan platform ini juga" />
+            ) : (
+              <button
+                type="button"
+                onClick={() => requestBind(key)}
+                className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-bold text-ink"
+              >
+                Hubungkan
+              </button>
+            )}
+            {isConnected && <div className="text-[11px] text-ink-3">Terakhir sync: baru saja</div>}
             {isLocked && (
               <button
                 type="button"
                 onClick={() => setPendingUpgrade(key)}
-                className="mt-2.5 w-full rounded-lg border border-line py-1.5 text-[11px] font-semibold text-ink-2"
+                className="w-full rounded-lg border border-line py-1.5 text-[11px] font-semibold text-ink-2"
               >
                 Upgrade ke Pro buat buka
               </button>
