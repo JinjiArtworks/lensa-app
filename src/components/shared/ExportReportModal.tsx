@@ -11,11 +11,12 @@ export interface ExportReportData {
   spend: string;
   closing: string;
   note: string;
+  period?: string;
 }
 
 function toPlainText(data: ExportReportData): string {
   return [
-    `${data.scope} · 30 hari`,
+    `${data.scope} · ${data.period ?? "30 hari"}`,
     data.roas,
     `Spend ${data.spend} · ${data.closing} closing`,
     "",
@@ -75,7 +76,7 @@ export function ExportReportModal({
         </DialogHeader>
         <div ref={cardRef} className="mb-3.5 rounded-xl border border-line bg-bg p-4">
           <div className="mb-2 text-[10.5px] tracking-wide text-ink-3">
-            {`${data.scope} · 30 HARI`.toUpperCase()}
+            {`${data.scope} · ${data.period ?? "30 hari"}`.toUpperCase()}
           </div>
           <div className="mb-1 text-xl font-extrabold">{data.roas}</div>
           <div className="mb-2.5 text-xs text-ink-2">
