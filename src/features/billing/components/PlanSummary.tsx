@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
-import { useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
 import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
 import type { BusinessPlan } from "@/lib/firebase/types";
 import { INVOICES } from "../mock-data";

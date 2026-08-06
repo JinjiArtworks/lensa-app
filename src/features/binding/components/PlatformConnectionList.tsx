@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { PlatformIcon } from "@/components/shared/PlatformIcon";
 import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
-import { useConnectPlatform, useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectPlatform, useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
 
 const PLATFORM_SUB: Record<PlatformKey, string> = {
   meta: "Facebook & Instagram Ads",
@@ -24,16 +26,24 @@ export function PlatformConnectionList() {
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const connectPlatform = useConnectPlatform(activeBusinessId);
   const [connecting, setConnecting] = useState<PlatformKey | null>(null);
+  const [pendingBind, setPendingBind] = useState<PlatformKey | null>(null);
   const [pendingUpgrade, setPendingUpgrade] = useState<PlatformKey | null>(null);
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
 
-  function connect(key: PlatformKey) {
+  function requestBind(key: PlatformKey) {
     if (connectedPlatforms.includes(key) || connecting) return;
     if (isPlatformLocked(false, connectedPlatforms.length, platformLimit)) {
       setPendingUpgrade(key);
       return;
     }
+    setPendingBind(key);
+  }
+
+  function confirmBind() {
+    if (!pendingBind) return;
+    const key = pendingBind;
     const platformName = PLATFORM_LABELS[key].name;
+    setPendingBind(null);
     setConnecting(key);
     setTimeout(() => {
       connectPlatform.mutate(key, {
@@ -48,7 +58,8 @@ export function PlatformConnectionList() {
     .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
     .filter(Boolean)
     .join(", ");
-  const pendingPlatformName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
+  const pendingUpgradeName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
+  const pendingBindName = pendingBind ? PLATFORM_LABELS[pendingBind].name : "";
 
   return (
     <div className="flex max-w-[480px] flex-col gap-2.5">
@@ -94,7 +105,7 @@ export function PlatformConnectionList() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => connect(key)}
+                  onClick={() => requestBind(key)}
                   className="shrink-0 rounded-lg bg-accent px-2.5 py-1.5 text-[11px] font-bold text-ink"
                 >
                   Hubungkan
@@ -115,14 +126,42 @@ export function PlatformConnectionList() {
         );
       })}
 
+      <Dialog open={pendingBind !== null} onOpenChange={(o) => !o && setPendingBind(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Binding ke {pendingBindName}?</DialogTitle>
+          </DialogHeader>
+          <p className="mb-4 text-[12.5px] leading-relaxed text-ink-2">
+            {isFree ? (
+              <>
+                Simulasi menghubungkan akun <b>{pendingBindName}</b> ke Lensa. Plan Free — sekali binding, permanen
+                sampai kamu upgrade ke Pro.
+              </>
+            ) : (
+              <>
+                Simulasi menghubungkan akun <b>{pendingBindName}</b> ke Lensa.
+              </>
+            )}
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button className="w-full justify-center" onClick={confirmBind}>
+              Ya, Binding
+            </Button>
+            <Button variant="ghost" className="w-full justify-center" onClick={() => setPendingBind(null)}>
+              Batal
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ProUpgradeDialog
         open={pendingUpgrade !== null}
         onOpenChange={(o) => !o && setPendingUpgrade(null)}
-        title={`${pendingPlatformName} terkunci`}
+        title={`${pendingUpgradeName} terkunci`}
         description={
           <>
             Plan Free cuma bisa 1 platform aktif, dan pilihan itu terkunci permanen setelah connect — kamu udah
-            connect <b>{currentPlatformNames}</b>. Upgrade ke Pro buat hubungkan <b>{pendingPlatformName}</b> juga
+            connect <b>{currentPlatformNames}</b>. Upgrade ke Pro buat hubungkan <b>{pendingUpgradeName}</b> juga
             tanpa lepas yang sekarang.
           </>
         }

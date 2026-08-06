@@ -10,7 +10,7 @@ import { useUiStore, type DetailPlatformView } from "@/stores/ui";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
 import { useProGate } from "@/components/shared/use-pro-gate";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
-import { useConnectedPlatforms } from "@/features/connect-platform/api/use-connect-platform";
+import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
 import { DETAIL_VIEW_LABELS, DETAIL_VIEW_ORDER } from "@/features/detail-platform/lib/detail-view";
 import { BusinessSwitcher } from "./BusinessSwitcher";
@@ -36,7 +36,7 @@ export const NAV_ITEMS = {
   lainnya: [
     { href: "/billing", label: "Billing", icon: CreditCard },
     { href: "/settings", label: "Settings", icon: Settings },
-    { href: "/connect-platform", label: "Connect Platform", icon: Plus },
+    { href: "/binding", label: "Binding", icon: Plus },
   ],
 };
 

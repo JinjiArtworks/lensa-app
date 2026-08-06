@@ -7,7 +7,7 @@ import { useUiStore } from "@/stores/ui";
 import { PackageComparison } from "@/features/billing/components/PackageComparison";
 import { PlanSummary } from "@/features/billing/components/PlanSummary";
 import { PaymentGatewayModal } from "@/features/billing/components/PaymentGatewayModal";
-import { useBusinessPlan } from "@/features/connect-platform/api/use-connect-platform";
+import { useBusinessPlan } from "@/features/binding/api/use-connect-platform";
 import { useUpdateBusinessPlan } from "@/features/billing/api/use-update-plan";
 import type { BusinessPlan } from "@/lib/firebase/types";
 

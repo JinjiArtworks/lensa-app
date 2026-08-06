@@ -1,6 +1,6 @@
 "use client";
 
-import { useBusinessPlan } from "@/features/connect-platform/api/use-connect-platform";
+import { useBusinessPlan } from "@/features/binding/api/use-connect-platform";
 
 // Single source of truth for "what's locked under Free" — used by Onboarding,
 // and later Detail Platform's platform switcher + Connect Platform's list,
