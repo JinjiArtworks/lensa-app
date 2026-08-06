@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilterBar, initialFilterValue, type FilterPreset, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
@@ -47,6 +47,15 @@ export default function DetailPlatformPage() {
   const switchPlatform = useSwitchPlatform(activeBusinessId);
   const [pendingSwitch, setPendingSwitch] = useState<PlatformKey | null>(null);
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
+
+  // Default tab is "meta", but a Free user who swapped to TikTok-only would
+  // otherwise land on a locked tab shown as active — snap to a connected
+  // platform once Firestore's connectedPlatforms resolves.
+  useEffect(() => {
+    if (connectedPlatforms.length > 0 && !connectedPlatforms.includes(platform)) {
+      setPlatform(connectedPlatforms[0] as PlatformKey);
+    }
+  }, [connectedPlatforms, platform]);
 
   function selectPlatform(key: PlatformKey) {
     if (isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit)) {
