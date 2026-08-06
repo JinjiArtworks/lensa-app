@@ -14,6 +14,10 @@ export function useUpdateBusinessPlan(businessId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business-plan", businessId] });
+      // BusinessSwitcher reads `plan` off the separate `businesses` list
+      // query (not `business-plan`) — without this it keeps showing the
+      // pre-change plan until something else happens to refetch it.
+      queryClient.invalidateQueries({ queryKey: ["businesses"] });
     },
   });
 }

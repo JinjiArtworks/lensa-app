@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — Copy as Report/Export PDF & AI Insight kategori Anomali/Rekomendasi sekarang beneran Pro-gated (sebelumnya cuma klaim di Billing), + chart efisiensi platform baru di Overview)
+**Last updated:** 2026-08-06 (sesi keempatbelas — konfirmasi upgrade/downgrade plan beneran nulis Firestore, fix cache invalidation biar BusinessSwitcher ikut refresh)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -138,6 +138,12 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **AI Insight kategori Anomali & Rekomendasi di-lock buat Free**, cuma Positif yang kebuka penuh — sesuai keputusan brainstorm (limitasi dalam halaman, bukan full-page lock, karena copy Billing udah janjiin "AI Insight dasar" bukan nol akses). `InsightCard` dapet prop `locked` (card di-dim, body+impactNote diganti pesan lock + tombol upgrade, feedback button disembunyikan). `PriorityPanel` sama polanya (rekomendasi prioritas yang non-Positif di-lock, karena prioritas biasanya justru dari kategori Anomali/Rekomendasi). Satu `ProUpgradeDialog` dipakai bareng di level page.
 - **Chart baru "Efisiensi Platform"** (`PlatformEfficiencyChart.tsx`) — bar chart horizontal Meta vs TikTok, toggle CTR/CPA, ditaruh 2-kolom bersisian sama donut "Kontribusi Platform" yang udah ada (sebelumnya cuma 1 kolom penuh). Data baru `EFFICIENCY_CHART_DATA` di `derivePlatformsData()` (ctr mentah + `cpaFromRaw()`, reuse fungsi yang udah ada, bukan hitung ulang).
 - **2 insiden bundle-size ketemu & dibenerin saat verifikasi** (pola yang sama kayak `CoverageBanner` sebelumnya — komponen yang langsung import Firestore-touching hook bikin bundle route itu bengkak ~170KB): (1) `CopyAsReportButton`/`ExportPdfButton` yang sekarang pakai `useProGate` bikin Overview (283→453KB) & Detail Platform (252→426KB) bengkak — di-fix `next/dynamic`, balik ke baseline. (2) AI Insight (162→338KB) TETAP naik meski dicoba di-lazy-load — beda kasus: halaman itu sendiri butuh `useProGate` buat nentuin konten apa yang di-render (bukan dekoratif kayak CoverageBanner), jadi biaya Firestore-nya emang inherent ke fitur, bukan bug — diterima apa adanya, dicatat di sini biar jelas ini keputusan sadar bukan kelewat.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
+
+**Lanjut sesi keempatbelas — user tanya buat kebutuhan demo assessment: apakah "Upgrade ke Pro" beneran nulis plan asli, dan minta tombol "back to Free":**
+- **Dikonfirmasi: beneran real write** — `useUpdateBusinessPlan` cuma `updateDoc(businesses/{id}, { plan })`, bukan simulasi. Cuma proses pembayarannya yang mock (sengaja).
+- **Tombol "back to Free" ternyata udah ada** — `PackageComparison`'s kartu Free punya "Downgrade ke Free" (muncul kapan pun plan aktif Pro), pakai mutation yang sama. Nggak perlu bikin baru.
+- **1 bug ketemu pas ngecek:** `useUpdateBusinessPlan`'s `onSuccess` cuma invalidate query key `["business-plan", businessId]` — `BusinessSwitcher` baca plan dari query key **beda** (`["businesses", ownerId]`), jadi abis ganti plan lewat Billing, switcher-nya nggak auto-refresh (baru keupdate kalau ada trigger lain atau reload manual). Fix: `onSuccess` sekarang invalidate keduanya.
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
