@@ -208,7 +208,7 @@ function DetailPlatformNavItem({
                 type="button"
                 onClick={() => selectView(key)}
                 className={`flex items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold ${
-                  isActive ? "bg-accent text-ink" : locked ? "text-ink-3" : "text-ink-2 hover:bg-bg"
+                  isActive ? "bg-accent-bg text-accent-text" : locked ? "text-ink-3" : "text-ink-2 hover:bg-bg"
                 }`}
               >
                 {DETAIL_VIEW_LABELS[key]}
