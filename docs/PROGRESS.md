@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — Copy as Report & Export as PDF diganti jadi whole-page capture, brainstorming inline tanpa spec file atas permintaan user)
+**Last updated:** 2026-08-06 (sesi keempatbelas — audit checklist Dashboard Revamp lama vs kode asli, 2 gap ketemu & langsung difix: tooltip lock icon Detail Platform submenu, tooltip chart PlatformTrendChart)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -93,6 +93,11 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **Komponen baru `ExportPdfButton.tsx`**: capture → `jsPDF` custom page-size = dimensi canvas (pola `hotfixes: ["px_scaling"]` yang udah ada dipertahankan) → download `lensa-report-<slug>.pdf`. Reuse `html2canvas`+`jspdf` yang udah terpasang, nggak ada dependency baru.
 - Verifikasi: `tsc --noEmit` bersih, `npm run lint` bersih, `next build` sukses (17 route, nggak berubah).
 - **Belum dicoba manual di browser** — subagent/controller di sesi ini nggak buka browser buat klik tombolnya beneran, jadi copy-image-ke-clipboard & download PDF-nya baru diverifikasi lewat code-level trace, belum smoke test visual.
+
+**Lanjut sesi keempatbelas — user tempel ulang notes brainstorming asli "Dashboard Revamp" (20 item lintas Overview/Detail Platform/AI Insight/Billing/Settings/Binding/Overall), minta diaudit ulang ke kode asli (bukan percaya klaim PROGRESS.md doang):**
+- **Audit (fork subagent, baca kode langsung) hasilnya 18/20 DONE, 2 PARTIAL** — semua item lain (global FilterBar/SyncButton/CopyAsReportButton, tooltip TrendChart Overview, PlatformShareChart donut, filter di 3 halaman, AI Insight detail+layout 4-section, Billing single-page+invoice+lock icons, Settings Team dihapus, Binding real icon+lock, sync flow lintas-page pakai `useSyncStore` bersama) terverifikasi genuinely correct, bukan cuma ke-klaim.
+- **2 gap ketemu, keduanya di Detail Platform, langsung difix:** (1) lock icon di submenu Sidebar (`DetailPlatformNavItem`) buat platform terkunci cuma buka dialog upgrade pas diklik, belum ada penjelasan pas di-hover — ditambah `title="Upgrade ke Pro untuk buka multi platform"` di tombolnya. (2) `PlatformTrendChart` (Detail Platform) belum punya hover tooltip sama sekali, beda sama `TrendChart` Overview yang udah ada — ditambah `Tooltip`+`PlatformTrendTooltip` custom yang baca metric aktif (Spend/Closing) dari toggle, format `toLocaleString("id-ID")` konsisten sama `TrendTooltip` Overview.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (17 route) — sempet kena `PageNotFoundError` transient di `/settings` karena cache `.next` stale (pola yang sama kayak insiden sebelumnya di sesi ini), `rm -rf .next` lalu build ulang beres.
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.
