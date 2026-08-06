@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — bug ketemu user: downgrade ke Free nggak ngurangin binding 2-platform yang dibuat pas Pro, difix — sekarang trim otomatis balik ke 1 platform pertama)
+**Last updated:** 2026-08-06 (sesi keempatbelas — tombol "Upgrade ke Pro buat buka" di Binding diganti jadi primary style, konsisten sama tombol "Hubungkan" di sampingnya)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -149,6 +149,9 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 **Lanjut sesi keempatbelas — user coba alur demo (upgrade ke Pro → binding 2 platform → downgrade ke Free) dan nemu bug: kedua platform tetap kebind, nggak balik ke 1:**
 - **Root cause:** `useUpdateBusinessPlan` cuma nulis field `plan`, nggak pernah nyentuh `connectedPlatforms` — rule "Free cuma 1 platform, permanen sampe upgrade" (`useProGate`/Binding) cuma nge-block **nambah** slot ke-2 ke depan, nggak ada logic yang jalan **ke belakang** pas plan turun lagi.
 - **Fix:** mutation sekarang cek — kalau target plan `"free"` dan `connectedPlatforms` di Firestore panjangnya >1, sekalian trim ke elemen pertama (`connectedPlatforms[0]` — platform yang paling duluan di-bind) dalam 1 `updateDoc` yang sama. Query key `["business-platforms", businessId]` (dibaca Sidebar submenu & Binding) ikut di-invalidate di `onSuccess`, plus `Sidebar`'s existing snap-back `useEffect` (`detailPlatformView` balik ke platform pertama kalau yang lagi dipilih ternyata udah nggak connected) otomatis kepakai buat beresin state Detail Platform juga — nggak perlu logic baru di situ.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
+
+**Lanjut sesi keempatbelas — polish kecil: tombol "Upgrade ke Pro buat buka" di kartu locked Binding diganti dari outline (`border border-line`) jadi primary (`bg-accent text-ink`), matching gaya tombol "Hubungkan" di kartu yang belum locked.**
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**

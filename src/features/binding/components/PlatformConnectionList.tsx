@@ -115,7 +115,7 @@ export function PlatformConnectionList() {
               <button
                 type="button"
                 onClick={() => setPendingUpgrade(key)}
-                className="w-full rounded-lg border border-line py-1.5 text-[11px] font-semibold text-ink-2"
+                className="w-full rounded-lg bg-accent py-1.5 text-[11px] font-bold text-ink"
               >
                 Upgrade ke Pro buat buka
               </button>
