@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type ToastVariant = "success" | "error";
 
@@ -21,16 +22,26 @@ interface UiState {
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
-export const useUiStore = create<UiState>((set) => ({
-  activeBusinessId: null,
-  setActiveBusinessId: (id) => set({ activeBusinessId: id }),
-  toast: null,
-  toastVariant: "success",
-  showToast: (message, variant = "success") => {
-    if (toastTimer) clearTimeout(toastTimer);
-    set({ toast: message, toastVariant: variant });
-    toastTimer = setTimeout(() => set({ toast: null }), 1800);
-  },
-  detailPlatformView: "meta",
-  setDetailPlatformView: (v) => set({ detailPlatformView: v }),
-}));
+export const useUiStore = create<UiState>()(
+  persist(
+    (set) => ({
+      activeBusinessId: null,
+      setActiveBusinessId: (id) => set({ activeBusinessId: id }),
+      toast: null,
+      toastVariant: "success",
+      showToast: (message, variant = "success") => {
+        if (toastTimer) clearTimeout(toastTimer);
+        set({ toast: message, toastVariant: variant });
+        toastTimer = setTimeout(() => set({ toast: null }), 1800);
+      },
+      detailPlatformView: "meta",
+      setDetailPlatformView: (v) => set({ detailPlatformView: v }),
+    }),
+    {
+      name: "lensa-ui",
+      // Only the active business selection needs to survive a reload —
+      // toast state and detailPlatformView are transient per-visit UI state.
+      partialize: (state) => ({ activeBusinessId: state.activeBusinessId }),
+    }
+  )
+);

@@ -25,7 +25,12 @@ export function BusinessSwitcher() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
-    if (!activeBusinessId && businesses.length > 0) setActiveBusinessId(businesses[0].id);
+    if (businesses.length === 0) return;
+    // Also recovers from a persisted id that's stale (business deleted, or
+    // leftover from a different account on the same browser).
+    if (!activeBusinessId || !businesses.some((b) => b.id === activeBusinessId)) {
+      setActiveBusinessId(businesses[0].id);
+    }
   }, [activeBusinessId, businesses, setActiveBusinessId]);
 
   const active = businesses.find((b) => b.id === activeBusinessId) ?? businesses[0];

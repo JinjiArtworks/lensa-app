@@ -191,9 +191,6 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
 
 export const TARGETS = { roas: 3.5, closing: 90 };
 
-export const CONNECTED_PLATFORM_COUNT = 2;
-export const TOTAL_PLATFORM_CATALOG = 2; // becomes 4 once GA/Marketplace Ads are added in a later plan
-
 export const STATUS_LABEL: Record<CampaignStatus, string> = {
   active: "Active",
   paused: "Paused",

@@ -54,6 +54,10 @@ export default function BillingPage() {
       </div>
 
       <PaymentGatewayModal open={paymentOpen} onClose={() => setPaymentOpen(false)} />
+
+      <div className="mt-6 text-center text-[11px] text-ink-3">
+        Halaman ini simulasi untuk keperluan demo — belum terhubung ke payment gateway sungguhan.
+      </div>
     </div>
   );
 }

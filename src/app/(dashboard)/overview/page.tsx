@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
@@ -9,7 +10,6 @@ import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { KpiGrid } from "@/features/overview-dashboard/components/KpiGrid";
-import { CoverageBanner } from "@/features/overview-dashboard/components/CoverageBanner";
 import { TargetTracker } from "@/features/overview-dashboard/components/TargetTracker";
 import { ProactiveAlertCard } from "@/features/overview-dashboard/components/ProactiveAlertCard";
 import { ChannelChart } from "@/features/overview-dashboard/components/ChannelChart";
@@ -17,6 +17,14 @@ import { TrendChart } from "@/features/overview-dashboard/components/TrendChart"
 import { PlatformShareChart } from "@/features/overview-dashboard/components/PlatformShareChart";
 import { CampaignTable } from "@/features/overview-dashboard/components/CampaignTable";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
+
+// Lazy: this is the only thing on the page that reads Firestore directly
+// (real connectedPlatforms, not the mocked metrics API) — keeping it out of
+// the main chunk avoids pulling the Firestore SDK into Overview's initial JS
+// (same reasoning as NavAccountActions.tsx on the landing page).
+const CoverageBanner = dynamic(() =>
+  import("@/features/overview-dashboard/components/CoverageBanner").then((m) => m.CoverageBanner)
+);
 
 export default function OverviewPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
