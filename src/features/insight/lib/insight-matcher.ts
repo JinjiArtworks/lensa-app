@@ -1,6 +1,6 @@
 import type { OverviewData } from "@/features/overview-dashboard/mock-data";
 import { shouldShowProactiveAlert } from "@/features/overview-dashboard/lib/proactive-alert";
-import { INSIGHT_DATA } from "../mock-data";
+import { INSIGHT_DATA, SYNC_INSIGHT_POOL } from "../mock-data";
 import type { BenchmarkMetric, InsightItem, PeriodKey } from "../types";
 
 // Kartu anomali "live" di periode Minggu Ini dituntun dari PLATFORMS milik bisnis aktif
@@ -39,6 +39,15 @@ export function getInsightsForPeriod(period: PeriodKey, platforms: OverviewData[
 
 export function getCompareLine(period: PeriodKey): string {
   return INSIGHT_DATA[period].compareLine;
+}
+
+// "Sync & Analisis Ulang" simulation — picks one scenario from SYNC_INSIGHT_POOL
+// so each click feels like the AI surfaced something new, never the same one
+// twice in a row. Still a simulated/template pick, not a live re-analysis.
+export function pickFreshInsight(excludeId?: string): InsightItem {
+  const candidates = SYNC_INSIGHT_POOL.filter((it) => it.id !== excludeId);
+  const pool = candidates.length > 0 ? candidates : SYNC_INSIGHT_POOL;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 export function computeInsightStats(items: InsightItem[]): {

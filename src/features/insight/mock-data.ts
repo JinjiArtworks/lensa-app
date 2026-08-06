@@ -475,6 +475,86 @@ export const INSIGHT_DATA: Record<PeriodKey, PeriodInsightData> = {
   },
 };
 
+// Simulasi "AI Insight Sync & Analisis Ulang" — bukan bank template per-periode
+// biasa, ini kumpulan skenario yang khusus dimunculkan lewat pickFreshInsight()
+// (insight-matcher.ts) saat tombol Sync & Analisis Ulang diklik, biar keliatan
+// AI "menemukan" sesuatu yang baru dari re-analisis. Tetap simulasi/template,
+// bukan live API (sama prinsipnya kayak seluruh AI Insight — business-plan.md §9).
+export const SYNC_INSIGHT_POOL: InsightItem[] = [
+  {
+    id: "sync-1",
+    category: "anomali",
+    platformLabel: "Meta Ads",
+    platformKey: "meta",
+    title: "Bounce rate naik di halaman checkout",
+    body: "Bounce rate dari klik iklan Meta ke halaman checkout naik 11% dibanding rata-rata minggu ini — kemungkinan ada friksi baru di funnel setelah klik.",
+    time: "Baru saja",
+    actionLabel: "Tandai sudah ditinjau",
+    impact: "Sedang",
+    impactNote: "Cek kecepatan load & langkah checkout dalam 1-2 hari sebelum closing rate ikut terdampak.",
+  },
+  {
+    id: "sync-2",
+    category: "anomali",
+    platformLabel: "TikTok Ads",
+    platformKey: "tiktok",
+    title: "Video drop-off naik di 5 detik pertama",
+    body: "Penonton yang berhenti nonton di 5 detik pertama video TikTok Ads naik dari 38% ke 47% — hook awal creative kemungkinan mulai kurang menarik.",
+    time: "Baru saja",
+    actionLabel: "Tandai sudah ditinjau",
+    impact: "Tinggi",
+    impactNote: "Ganti hook 3-5 detik pertama di batch creative berikutnya sebelum CTR ikut turun.",
+  },
+  {
+    id: "sync-3",
+    category: "rekomendasi",
+    platformLabel: "Meta Ads",
+    platformKey: "meta",
+    title: "Coba format iklan carousel",
+    body: "Campaign single-image Meta Ads sudah berjalan lama tanpa variasi format — worth ditest format carousel buat produk dengan varian warna/ukuran.",
+    time: "Baru saja",
+    actionLabel: "Tandai diterapkan",
+    impact: "Sedang",
+    impactNote: "Format carousel biasanya menaikkan CTR 10-15% buat produk dengan banyak varian.",
+  },
+  {
+    id: "sync-4",
+    category: "rekomendasi",
+    platformLabel: "TikTok Ads",
+    platformKey: "tiktok",
+    title: "Tambah 2 variasi hook baru",
+    body: "Creative TikTok Ads yang jalan sekarang cuma pakai 1 gaya hook — worth ditambah 1-2 variasi biar AI platform bisa cari kombinasi terbaik lebih cepat.",
+    time: "Baru saja",
+    actionLabel: "Tandai diterapkan",
+    impact: "Rendah",
+    impactNote: "Eksperimen kecil, risiko rendah, mempercepat platform belajar creative yang paling resonan.",
+  },
+  {
+    id: "sync-5",
+    category: "positif",
+    platformLabel: "Semua Platform",
+    platformKey: "semua",
+    title: "Retensi pelanggan meningkat minggu ini",
+    body: "Porsi closing dari pembeli lama naik dibanding minggu lalu — tanda produk & layanan yang diberikan mulai membangun loyalitas.",
+    time: "Baru saja",
+    actionLabel: "Tandai sudah dilihat",
+    impact: "Rendah",
+    impactNote: "Tidak perlu aksi — pertimbangkan program loyalitas buat percepat tren ini.",
+  },
+  {
+    id: "sync-6",
+    category: "positif",
+    platformLabel: "Meta Ads",
+    platformKey: "meta",
+    title: "Cost per result makin stabil",
+    body: "Biaya per hasil (cost per result) Meta Ads berfluktuasi lebih kecil dibanding 2 minggu lalu — tanda algoritma penayangan sudah menemukan audiens yang tepat.",
+    time: "Baru saja",
+    actionLabel: "Tandai sudah dilihat",
+    impact: "Rendah",
+    impactNote: "Tidak perlu aksi — pertahankan budget & targeting yang sekarang.",
+  },
+];
+
 // Statis (bukan per-periode), sama seperti mockup HTML asli — angka simulasi "rata-rata industri".
 export const INDUSTRY_BENCHMARK_CATEGORY = "Fashion & Retail";
 

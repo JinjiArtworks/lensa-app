@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — Ringkasan & Rekomendasi Prioritas di AI Insight dibuka jadi free buat semua plan, bukan cuma Pro; filter kategori diurutin ulang)
+**Last updated:** 2026-08-06 (sesi keempatbelas — "Sync & Analisis Ulang" AI Insight sekarang simulasi nemuin 1 insight baru tiap diklik, bukan cuma update timestamp doang)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -46,6 +46,13 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **`page.tsx`** disesuaikan (kedua komponen nggak lagi terima `isFree`/`onUpgradeClick`) — `isFree`/`upgradeOpen`/`ProUpgradeDialog` tetap dipakai buat `InsightGrid` (grid "Semua Insight" tetap Pro-gate per kategori, tidak berubah).
 - **Filter kategori diurutin ulang**: `Semua → Positif → Perlu Aksi → Rekomendasi` (sebelumnya Semua/Perlu Aksi/Rekomendasi/Positif) — matching urutan grouping yang udah dipakai `InsightGrid` (`CATEGORY_ORDER`).
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` turun ke 9.9KB — komponen makin ringan setelah logic lock dibuang).
+
+**Lanjut sesi keempatbelas — user minta "Sync & Analisis Ulang" AI Insight kasih efek visual seolah-olah AI beneran menemukan insight baru (data simulasi, bukan live re-analysis — konsisten sama prinsip AI Insight yang emang template/simulasi sejak awal):**
+- **`SYNC_INSIGHT_POOL`** (6 skenario baru, 2 per kategori Perlu Aksi/Rekomendasi/Positif) ditambah ke `mock-data.ts` — khusus buat efek sync ini, terpisah dari 36 item template per-periode yang udah ada.
+- **`pickFreshInsight(excludeId?)`** (`insight-matcher.ts`) — pilih 1 item random dari pool, exclude item yang lagi ditampilkan biar nggak keulang persis pas klik 2x berturut-turut.
+- **`SyncButton.tsx`** dapet prop opsional baru `onSynced` — kalau dikasih, override toast default (dipakai AI Insight buat toast custom "insight baru ditemukan"; Overview/Detail Platform yang nggak pass prop ini tetap jalan kayak biasa, 0 perubahan perilaku di 2 halaman itu).
+- **`/insight` page**: state `freshInsight` — tiap klik Sync & Analisis Ulang manggil `pickFreshInsight()`, hasilnya di-prepend ke `periodItems` (otomatis kehitung di stat Total Insight/Rekomendasi baru, ikut muncul di Aksi Prioritas kalau impact-nya cukup tinggi, ikut nongol di grid Semua Insight sesuai kategorinya) + banner khusus "✨ Insight baru dari analisis ulang" di atas kartu ringkasan (bisa ditutup manual, atau otomatis ke-reset kalau ganti periode filter).
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (`/insight` 10.3KB, +0.4KB wajar buat pool data+banner baru).
 
 **Sesi keempatbelas (2026-08-06) — retest sign-up di Vercel dikonfirmasi jalan, fix presisi angka rupiah, lalu mulai "Dashboard Revamp" (inisiatif baru di luar checklist Phase 4, permintaan langsung user): Phase 1/7 selesai — global components + Pro-gating reusable, dieksekusi via brainstorming → writing-plans → subagent-driven-development:**
 - **Retest sign-up/login Vercel (dari catatan sesi ketigabelas) — dikonfirmasi user langsung, berhasil.**

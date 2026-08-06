@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { useSyncStore } from "@/stores/sync";
 import { useUiStore } from "@/stores/ui";
 
-export function SyncButton({ queryKey, label = "Sync" }: { queryKey: unknown[]; label?: string }) {
+export function SyncButton({
+  queryKey,
+  label = "Sync",
+  onSynced,
+}: {
+  queryKey: unknown[];
+  label?: string;
+  // Optional hook for callers that want their own post-sync effect (e.g. AI
+  // Insight surfacing a simulated "new" insight) instead of the default toast.
+  onSynced?: () => void;
+}) {
   const queryClient = useQueryClient();
   const showToast = useUiStore((s) => s.showToast);
   const { syncing, triggerSync } = useSyncStore();
@@ -16,7 +26,11 @@ export function SyncButton({ queryKey, label = "Sync" }: { queryKey: unknown[]; 
   async function handleSync() {
     await triggerSync();
     await queryClient.invalidateQueries({ queryKey });
-    showToast("Data berhasil disinkronkan dari semua platform");
+    if (onSynced) {
+      onSynced();
+    } else {
+      showToast("Data berhasil disinkronkan dari semua platform");
+    }
   }
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Sparkles, X } from "lucide-react";
 import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
@@ -22,6 +23,7 @@ import {
   filterInsights,
   getCompareLine,
   getInsightsForPeriod,
+  pickFreshInsight,
   pickPriorityInsights,
 } from "@/features/insight/lib/insight-matcher";
 import { BUDGET_REC, INDUSTRY_BENCHMARK, INDUSTRY_BENCHMARK_CATEGORY } from "@/features/insight/mock-data";
@@ -29,6 +31,7 @@ import type { InsightItem } from "@/features/insight/types";
 
 export default function InsightPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
+  const showToast = useUiStore((s) => s.showToast);
   const { lastSyncedAt } = useSyncStore();
   const { isFree } = useProGate(activeBusinessId);
   const [range, setRange] = useState<FilterValue>(initialFilterValue("week"));
@@ -37,14 +40,28 @@ export default function InsightPage() {
   const [category, setCategory] = useState<"all" | InsightItem["category"]>("all");
   const [platform, setPlatform] = useState<"all" | "meta" | "tiktok">("all");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  // Simulasi "AI menemukan insight baru" saat Sync & Analisis Ulang diklik —
+  // lihat pickFreshInsight() di insight-matcher.ts. Direset kalau periode
+  // diganti, karena insight "baru" dari lensa periode lain nggak relevan lagi.
+  const [freshInsight, setFreshInsight] = useState<InsightItem | null>(null);
+
+  useEffect(() => {
+    setFreshInsight(null);
+  }, [range.preset]);
+
+  function handleInsightSync() {
+    const next = pickFreshInsight(freshInsight?.id);
+    setFreshInsight(next);
+    showToast(`Analisis ulang selesai — insight baru ditemukan: "${next.title}"`);
+  }
 
   // Kartu anomali live (periode "Minggu Ini") butuh data platform bisnis aktif —
   // sebelum query itu resolve, getInsightsForPeriod jatuh balik ke item statis,
   // jadi halaman ini nggak perlu full-page loading gate kayak Overview/Detail.
-  const periodItems = useMemo(
-    () => getInsightsForPeriod(range.preset, overviewData?.PLATFORMS),
-    [range.preset, overviewData]
-  );
+  const periodItems = useMemo(() => {
+    const base = getInsightsForPeriod(range.preset, overviewData?.PLATFORMS);
+    return freshInsight ? [freshInsight, ...base] : base;
+  }, [range.preset, overviewData, freshInsight]);
   const stats = useMemo(() => computeInsightStats(periodItems), [periodItems]);
   const priorityItems = useMemo(() => pickPriorityInsights(periodItems), [periodItems]);
   const visibleItems = useMemo(
@@ -61,11 +78,40 @@ export default function InsightPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="week" onChange={setRange} />
-          <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} label="Sync & Analisis Ulang" />
+          <SyncButton
+            queryKey={["platform-metrics", activeBusinessId, rangeKey]}
+            label="Sync & Analisis Ulang"
+            onSynced={handleInsightSync}
+          />
           <CopyAsReportButton businessId={activeBusinessId} />
           <ExportPdfButton fileName="ai-insight" businessId={activeBusinessId} />
         </div>
       </div>
+
+      {freshInsight && (
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-accent bg-accent-bg p-4">
+          <Sparkles className="size-5 shrink-0 text-accent-text" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-accent-text">
+              Insight baru dari analisis ulang
+              <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-ink">
+                Baru
+              </span>
+            </div>
+            <div className="mt-1 text-[12.5px] leading-relaxed text-accent-text">
+              <b>{freshInsight.title}</b> · {freshInsight.platformLabel} — {freshInsight.impactNote}
+            </div>
+          </div>
+          <button
+            type="button"
+            title="Tutup"
+            onClick={() => setFreshInsight(null)}
+            className="shrink-0 text-accent-text"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} />
 
