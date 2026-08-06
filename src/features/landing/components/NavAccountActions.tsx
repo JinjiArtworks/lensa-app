@@ -29,7 +29,7 @@ export function NavAccountActions({
     onNavigate?.();
     const businessDoc = businesses?.[0];
     if (businessDoc) useUiStore.getState().setActiveBusinessId(businessDoc.id);
-    router.push((businessDoc?.connectedPlatforms.length ?? 0) > 0 ? "/overview" : "/onboarding");
+    router.push((businessDoc?.connectedPlatforms?.length ?? 0) > 0 ? "/overview" : "/onboarding");
   }
 
   if (variant === "mobile") {
