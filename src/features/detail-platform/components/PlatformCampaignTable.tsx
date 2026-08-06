@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { PLATFORM_LABELS, STATUS_LABEL, formatRupiah, type Campaign } from "@/features/overview-dashboard/mock-data";
-import type { DetailPlatformView } from "./PlatformSwitcher";
+import type { DetailPlatformView } from "../lib/detail-view";
 
 export function PlatformCampaignTable({
   platformKey,

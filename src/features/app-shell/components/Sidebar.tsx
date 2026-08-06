@@ -1,12 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, BarChart3, Sparkles, CreditCard, Settings, Plus, LogOut } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Check, Lock, LayoutDashboard, BarChart3, Sparkles, CreditCard, Settings, Plus, LogOut } from "lucide-react";
 import { useLogout } from "@/features/auth/use-logout";
 import { useAuthStore } from "@/stores/auth";
+import { useUiStore, type DetailPlatformView } from "@/stores/ui";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
+import { useProGate } from "@/components/shared/use-pro-gate";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useConnectedPlatforms, useSwitchPlatform } from "@/features/connect-platform/api/use-connect-platform";
+import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
+import { DETAIL_VIEW_LABELS, DETAIL_VIEW_ORDER } from "@/features/detail-platform/lib/detail-view";
 import { BusinessSwitcher } from "./BusinessSwitcher";
+
+const PLATFORM_KEYS = Object.keys(PLATFORM_LABELS) as PlatformKey[];
 
 function initialsOf(name: string): string {
   return name
@@ -49,9 +58,13 @@ export function Sidebar() {
 
       <div className="px-2.5 pb-2 pt-3.5 text-[10.5px] font-bold uppercase tracking-wide text-ink-3 max-[760px]:hidden">Menu</div>
       <nav className="flex flex-col gap-0.5">
-        {NAV_ITEMS.menu.map((item) => (
-          <NavLink key={item.href} item={item} active={activePath === item.href} />
-        ))}
+        {NAV_ITEMS.menu.map((item) =>
+          item.href === "/detail" ? (
+            <DetailPlatformNavItem key={item.href} item={item} active={activePath === item.href} />
+          ) : (
+            <NavLink key={item.href} item={item} active={activePath === item.href} />
+          )
+        )}
       </nav>
 
       <div className="px-2.5 pb-2 pt-3.5 text-[10.5px] font-bold uppercase tracking-wide text-ink-3 max-[760px]:hidden">Lainnya</div>
@@ -105,5 +118,140 @@ function NavLink({
       <Icon className="size-[17px] shrink-0" />
       <span className="max-[760px]:hidden">{item.label}</span>
     </Link>
+  );
+}
+
+// Detail Platform's nav item expands into a submenu (Semua Platform / Meta
+// Ads / TikTok Ads) instead of the page owning an in-page switcher — this is
+// the sidebar's own "current view" state, shared with the /detail page via
+// useUiStore.detailPlatformView. Submenu auto-expands while /detail is active.
+function DetailPlatformNavItem({
+  item,
+  active,
+}: {
+  item: { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
+  active: boolean;
+}) {
+  const Icon = item.icon;
+  const router = useRouter();
+  const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
+  const showToast = useUiStore((s) => s.showToast);
+  const detailPlatformView = useUiStore((s) => s.detailPlatformView);
+  const setDetailPlatformView = useUiStore((s) => s.setDetailPlatformView);
+  const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
+  const switchPlatform = useSwitchPlatform(activeBusinessId);
+  const [pendingSwitch, setPendingSwitch] = useState<DetailPlatformView | null>(null);
+  const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
+
+  function isViewLocked(key: DetailPlatformView): boolean {
+    if (key === "all") return isFree;
+    return isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit);
+  }
+
+  // Stored view can go stale (e.g. plan downgraded, or platform slot swapped
+  // from elsewhere) — snap back to a connected platform once that's locked.
+  useEffect(() => {
+    if (connectedPlatforms.length === 0) return;
+    const locked =
+      detailPlatformView === "all" ? isFree : isFree && !connectedPlatforms.includes(detailPlatformView);
+    if (!locked) return;
+    setDetailPlatformView((connectedPlatforms[0] as PlatformKey) ?? "meta");
+  }, [connectedPlatforms, isFree, detailPlatformView, setDetailPlatformView]);
+
+  function selectView(key: DetailPlatformView) {
+    if (isViewLocked(key)) {
+      setPendingSwitch(key);
+      return;
+    }
+    setDetailPlatformView(key);
+    router.push("/detail");
+  }
+
+  function confirmSwitch() {
+    if (!pendingSwitch || pendingSwitch === "all") return;
+    const platformName = PLATFORM_LABELS[pendingSwitch].name;
+    switchPlatform.mutate(pendingSwitch, {
+      onSuccess: () => {
+        setDetailPlatformView(pendingSwitch);
+        setPendingSwitch(null);
+        router.push("/detail");
+        showToast(`Diganti ke ${platformName}`, "success");
+      },
+      onError: () => showToast(`Gagal ganti ke ${platformName}, coba lagi`, "error"),
+    });
+  }
+
+  const currentPlatformNames = connectedPlatforms
+    .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
+    .filter(Boolean)
+    .join(", ");
+  const pendingPlatformName = pendingSwitch && pendingSwitch !== "all" ? PLATFORM_LABELS[pendingSwitch].name : "";
+
+  return (
+    <div>
+      <Link
+        href={item.href}
+        title={item.label}
+        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-[13px] font-medium max-[760px]:justify-center max-[760px]:px-0 ${
+          active ? "bg-accent text-ink" : "text-ink-2 hover:bg-bg"
+        }`}
+      >
+        <Icon className="size-[17px] shrink-0" />
+        <span className="max-[760px]:hidden">{item.label}</span>
+      </Link>
+      {active && (
+        <div className="ml-2 mt-0.5 flex flex-col gap-0.5 border-l border-line pl-2.5 max-[760px]:hidden">
+          {DETAIL_VIEW_ORDER.map((key) => {
+            const isActive = detailPlatformView === key;
+            const locked = isViewLocked(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => selectView(key)}
+                className={`flex items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold ${
+                  isActive ? "bg-accent text-ink" : locked ? "text-ink-3" : "text-ink-2 hover:bg-bg"
+                }`}
+              >
+                {DETAIL_VIEW_LABELS[key]}
+                {isActive ? (
+                  <Check className="size-3.5 shrink-0" />
+                ) : locked ? (
+                  <Lock className="size-3 shrink-0 text-ink-3" />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <ProUpgradeDialog
+        open={pendingSwitch !== null}
+        onOpenChange={(o) => !o && setPendingSwitch(null)}
+        title={pendingSwitch === "all" ? "Buka Semua Platform?" : `Ganti ke ${pendingPlatformName}?`}
+        description={
+          pendingSwitch === "all" ? (
+            <>
+              Lihat performa gabungan semua platform sekaligus adalah fitur Pro. Plan Free cuma bisa lihat 1 platform
+              aktif — upgrade buat buka tampilan ini.
+            </>
+          ) : (
+            <>
+              Plan Free cuma bisa lihat 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan
+              diganti dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+            </>
+          )
+        }
+        swapAction={
+          pendingSwitch && pendingSwitch !== "all"
+            ? {
+                label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
+                pending: switchPlatform.isPending,
+                onConfirm: confirmSwitch,
+              }
+            : undefined
+        }
+      />
+    </div>
   );
 }
