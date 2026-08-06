@@ -101,7 +101,7 @@ export const TREND_METRICS: Record<TrendMetricKey, TrendMetric> = {
     legend: "CPA mingguan (Rp ribu)",
     goodDirection: "down",
     data: weeklyPoints([82, 79, 76, 74, 71, 69, 66, 64, 62, 60, 58, 56]),
-    format: (v) => "Rp" + Math.round(v) + "rb",
+    format: (v) => "Rp" + Math.round(v * 1000).toLocaleString("id-ID"),
   },
   ctr: {
     tabLabel: "CTR",

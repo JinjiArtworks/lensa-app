@@ -47,14 +47,17 @@ export function computeDelta(
   return { cls, sub: `${arrow} ${Math.abs(pct).toFixed(1)}% vs periode lalu` };
 }
 
+// v is in juta rupiah (millions) — expanded to the full rupiah amount with
+// Indonesian thousands separators instead of the "jt" shorthand.
 export function formatJuta(v: number): string {
-  return "Rp" + v.toFixed(1).replace(".", ",") + "jt";
+  return "Rp" + Math.round(v * 1_000_000).toLocaleString("id-ID");
 }
 export function formatRibuRupiah(rupiah: number): string {
-  return "Rp" + Math.round(rupiah / 1000) + "rb";
+  return "Rp" + Math.round(rupiah).toLocaleString("id-ID");
 }
+// v is in ribu (thousands) — expanded to the full count.
 export function formatRibu(v: number): string {
-  return Math.round(v) + "rb";
+  return Math.round(v * 1000).toLocaleString("id-ID");
 }
 export function formatCount(v: number): string {
   return Math.round(v).toLocaleString("id-ID");

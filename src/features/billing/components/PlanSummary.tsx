@@ -41,7 +41,7 @@ export function PlanSummary({
             Pro <span className="rounded bg-accent px-1.5 py-0.5 text-[9.5px] font-extrabold text-ink">AKTIF</span>
           </h3>
           <div className="my-2.5 text-[22px] font-extrabold">
-            Rp149rb<span className="text-xs font-normal text-ink-3">/bulan</span>
+            Rp149.000<span className="text-xs font-normal text-ink-3">/bulan</span>
           </div>
           <p className="mb-1.5 text-[12.5px] text-ink-2">
             Multi-bisnis · Meta Ads &amp; TikTok Ads terhubung otomatis · full AI Insight + export

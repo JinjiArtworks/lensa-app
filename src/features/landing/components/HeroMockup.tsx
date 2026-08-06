@@ -10,8 +10,9 @@ const TABS: { key: HeroPlatformKey; label: string }[] = [
   { key: "tiktok", label: "TikTok Ads" },
 ];
 
+// v is in juta rupiah (millions), same convention as overview-dashboard/lib/kpi.ts formatJuta.
 function formatSpend(v: number) {
-  return "Rp" + v.toFixed(1).replace(".", ",") + "jt";
+  return "Rp" + Math.round(v * 1_000_000).toLocaleString("id-ID");
 }
 function formatRoas(v: number) {
   return v.toFixed(1).replace(".", ",") + "x";

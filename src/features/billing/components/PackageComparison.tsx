@@ -73,7 +73,7 @@ export function PackageComparison({
             )}
           </h3>
           <div className="my-2 text-xl font-extrabold">
-            Rp149rb<span className="text-xs font-normal text-ink-3">/bulan</span>
+            Rp149.000<span className="text-xs font-normal text-ink-3">/bulan</span>
           </div>
           <p className="mb-2.5 text-[12.5px] text-ink-2">Buat bisnis yang serius optimasi lintas platform.</p>
           <ul className="mb-3.5 flex flex-col gap-2 text-[12.5px] text-ink-2">

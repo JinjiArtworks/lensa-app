@@ -10,8 +10,8 @@ import { PRICING_ROWS } from "../mock-data";
 type BillingCycle = "monthly" | "annual";
 
 const PRO_PRICE: Record<BillingCycle, { price: string; note: string }> = {
-  monthly: { price: "Rp149rb", note: "" },
-  annual: { price: "Rp119rb", note: "Ditagih Rp1.430.400/tahun" },
+  monthly: { price: "Rp149.000", note: "" },
+  annual: { price: "Rp119.000", note: "Ditagih Rp1.430.400/tahun" },
 };
 
 export function PricingSection({ onOpenCheckout }: { onOpenCheckout: () => void }) {
