@@ -75,7 +75,15 @@ export function ExportReportModal({
       const canvas = await renderCardCanvas();
       if (!canvas) throw new Error("card not ready");
       const { default: jsPDF } = await import("jspdf");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+      // px_scaling hotfix required for `unit: "px"` to map 1 unit = 1 canvas
+      // pixel — without it jsPDF applies a 96/72 scale factor and the PDF
+      // page ends up ~1.33x larger than the canvas dimensions.
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [canvas.width, canvas.height],
+        hotfixes: ["px_scaling"],
+      });
       pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
       pdf.save(`lensa-report-${data.scope.toLowerCase().replace(/\s+/g, "-")}.pdf`);
       showToast("Report PDF diunduh");
