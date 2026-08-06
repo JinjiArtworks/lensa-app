@@ -39,6 +39,11 @@ export function presetRange(preset: FilterPreset): { from: string; to: string } 
   return { from: isoDate(from), to };
 }
 
+export function initialFilterValue(defaultPreset: FilterPreset): FilterValue {
+  const preset = defaultPreset === "custom" ? "month" : defaultPreset;
+  return { preset, ...presetRange(preset) };
+}
+
 export function FilterBar({
   defaultPreset = "month",
   onChange,
@@ -47,21 +52,18 @@ export function FilterBar({
   onChange: (value: FilterValue) => void;
 }) {
   const [preset, setPreset] = useState<FilterPreset>(defaultPreset);
-  const initialRange = presetRange(defaultPreset === "custom" ? "month" : defaultPreset);
+  const initialRange = initialFilterValue(defaultPreset);
   const [customFrom, setCustomFrom] = useState(initialRange.from);
   const [customTo, setCustomTo] = useState(initialRange.to);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   function selectPreset(next: FilterPreset) {
     setPreset(next);
-    if (next === "custom") {
-      setPopoverOpen(true);
-      return;
-    }
     onChange({ preset: next, ...presetRange(next) });
   }
 
   function applyCustom() {
+    setPreset("custom");
     setPopoverOpen(false);
     onChange({ preset: "custom", from: customFrom, to: customTo });
   }
@@ -74,7 +76,6 @@ export function FilterBar({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                onClick={() => selectPreset("custom")}
                 className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold ${
                   preset === "custom" ? "bg-accent text-ink" : "bg-gray-bg text-ink-2 hover:bg-line"
                 }`}
