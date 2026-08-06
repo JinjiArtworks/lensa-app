@@ -6,11 +6,7 @@ import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
 import type { BusinessPlan } from "@/lib/firebase/types";
 import { INVOICES } from "../mock-data";
 
-const FREE_SNAPSHOT = [
-  "1 pengguna",
-  "AI Insight dasar — kategori Positif saja",
-  "Histori data 7 hari terakhir",
-];
+const FREE_SNAPSHOT = ["1 bisnis", "AI Insight dasar — kategori Positif saja"];
 
 export function PlanSummary({
   businessId,

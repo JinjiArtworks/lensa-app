@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { CreateBusinessModal } from "@/components/shared/CreateBusinessModal";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
 import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
 import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
@@ -89,9 +90,10 @@ export function BusinessSwitcher() {
               if (isFree) setUpgradeOpen(true);
               else setCreateOpen(true);
             }}
-            className="w-full rounded-lg p-2 text-left text-[12.5px] font-bold text-accent-text hover:bg-bg"
+            className="flex w-full items-center justify-between gap-1.5 rounded-lg p-2 text-left text-[12.5px] font-bold text-accent-text hover:bg-bg"
           >
             + Tambah Bisnis Baru
+            {isFree && <ProLockBadge tooltip="Upgrade ke Pro untuk kelola lebih dari 1 bisnis" />}
           </button>
         </div>
       )}

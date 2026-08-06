@@ -55,7 +55,6 @@ export const PRICING_ROWS: PricingRow[] = [
   { label: "Jumlah bisnis", free: "1 bisnis", pro: "Unlimited" },
   { label: "Platform terhubung", free: "1 platform (Meta atau TikTok)", pro: "Meta + TikTok otomatis" },
   { label: "AI Insight", free: "Dasar (kategori Positif)", pro: "Penuh + export laporan" },
-  { label: "Histori data", free: "7 hari", pro: "Tanpa batas" },
 ];
 
 export const HERO_PLATFORM_DATA: Record<HeroPlatformKey, HeroPlatformData> = {
