@@ -33,6 +33,13 @@ export const PLATFORM_LABELS: Record<PlatformKey, { name: string; ic: string }> 
   tiktok: { name: "TikTok Ads", ic: "TT" },
 };
 
+// Shared categorical color per platform — used by every chart that breaks a
+// metric down by platform (Detail Platform trend chart, Overview donut chart).
+export const PLATFORM_CHART_COLOR: Record<PlatformKey, string> = {
+  meta: "#f0b400",
+  tiktok: "#4f8cff",
+};
+
 // Single source of truth for every number shown for a platform, on both the
 // Overview (combined) and Detail Platform (per-platform) pages — every value
 // (including the delta "sub"/"cls") is computed from current-vs-previous raw

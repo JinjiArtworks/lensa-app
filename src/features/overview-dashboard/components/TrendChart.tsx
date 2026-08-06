@@ -1,7 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, XAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+
+function TrendTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { value: number; dataKey: string }[];
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  const current = payload.find((p) => p.dataKey === "current")?.value;
+  const previous = payload.find((p) => p.dataKey === "previous")?.value;
+  return (
+    <div className="rounded-lg bg-ink px-2.5 py-1.5 text-[11.5px] font-bold tabular-nums text-white">
+      <div>Hari {label}</div>
+      {current !== undefined && <div className="font-normal text-white/80">Sekarang: {current.toLocaleString("id-ID")}</div>}
+      {previous !== undefined && <div className="font-normal text-white/80">Sebelumnya: {previous.toLocaleString("id-ID")}</div>}
+    </div>
+  );
+}
 
 export function TrendChart({
   trendData,
@@ -39,6 +60,7 @@ export function TrendChart({
       <ResponsiveContainer width="100%" height={190}>
         <AreaChart data={data}>
           <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9d9da6" }} axisLine={false} tickLine={false} />
+          <Tooltip content={<TrendTooltip />} />
           <Area type="monotone" dataKey="current" stroke="#f0b400" fill="#f0b400" fillOpacity={0.12} strokeWidth={2.4} />
           <Area
             type="monotone"

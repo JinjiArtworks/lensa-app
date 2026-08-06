@@ -14,6 +14,7 @@ import { TargetTracker } from "@/features/overview-dashboard/components/TargetTr
 import { ProactiveAlertCard } from "@/features/overview-dashboard/components/ProactiveAlertCard";
 import { ChannelChart } from "@/features/overview-dashboard/components/ChannelChart";
 import { TrendChart } from "@/features/overview-dashboard/components/TrendChart";
+import { PlatformShareChart } from "@/features/overview-dashboard/components/PlatformShareChart";
 import { CampaignTable } from "@/features/overview-dashboard/components/CampaignTable";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 
@@ -84,6 +85,9 @@ export default function OverviewPage() {
           <div className="mb-4 grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
             <ChannelChart chartData={data.CHANNEL_CHART_DATA} />
             <TrendChart trendData={data.TREND_DATA} />
+          </div>
+          <div className="mb-4">
+            <PlatformShareChart chartData={data.CHANNEL_CHART_DATA} />
           </div>
           <CampaignTable campaigns={data.CAMPAIGNS} creatives={data.CREATIVES} />
         </>
