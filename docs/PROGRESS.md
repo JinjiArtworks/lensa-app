@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — Dashboard Revamp Fase 1-7 SELESAI SEMUA, lanjut tanpa checkpoint per-fase atas instruksi user)
+**Last updated:** 2026-08-06 (sesi keempatbelas — Dashboard Revamp Fase 1-7 selesai, lanjut 2 fix susulan: Detail Platform switcher jadi dropdown + opsi Semua Platform, Sidebar pakai nama user asli)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -44,6 +44,12 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - Verifikasi tiap fase: `tsc --noEmit` bersih, `next build` sukses (17 route konsisten sepanjang Fase 2-7, nggak ada yang nambah/ilang), `npm run lint` bersih.
 - **7 commit terpisah** (1 per fase + 1 review-fix), semua conventional-prefix, semua di-push ke `origin/main` begitu selesai (bukan ditumpuk jadi 1 commit besar di akhir).
 - **Dashboard Revamp (inisiatif di luar checklist Phase 4 asli) sekarang SELESAI SEMUA — Fase 1-7.** User berikutnya mau "pelajarin semua secara teknis" — kalau lanjut sesi baru buat itu, nggak perlu baca plan/spec lokal (`.superpowers/sdd/`, nggak di-push), cukup baca entry sesi ini + `git log` per fase buat trace perubahan per commit.
+
+**Lanjut sesi keempatbelas — 2 fix susulan dari user setelah lihat Dashboard Revamp jadi (dikerjain langsung, scope kecil & jelas):**
+- **Detail Platform `PlatformSwitcher` diganti dari chip-button tabs jadi dropdown (`shadcn Select`)**, nambah opsi baru **"Semua Platform"** (agregat KPI_ROW_1+2/trend gabungan meta+tiktok/semua campaign) — dicek dulu ke `business-plan.md` §9: ini beda dari "Mode Compare 2 Platform" yang dicoret dari scope karena tetap 1 view sekaligus (dropdown pilih 1 dari 3), bukan side-by-side. "Semua Platform" di-gate Pro-only (`isFree` lock) karena data seed selalu blend meta+tiktok apa pun status connect asli — kalau dibuka buat Free, user bisa lihat data platform yang belum mereka connect. `PlatformKpiGrid`/`PlatformTrendChart` direfactor terima data mentah (entries array / series+color+label) langsung, bukan lookup by platformKey, biar 1 code path buat single-platform maupun "all".
+- **Sidebar (navbar dashboard) hardcode "Sinta W." buat SEMUA user yang login** — nggak pernah baca profil asli. Fix: pakai `useUserProfile`+`useAuthStore` (pola sama kayak Onboarding sesi ketigabelas), inisial avatar dihitung dari nama asli.
+- Verifikasi: `tsc --noEmit` bersih, `next build` sukses (17 route, nggak berubah), `lint` bersih.
+- Di-commit (`2b6ea53`, "Detail Platform switcher becomes a dropdown with Semua Platform, sidebar shows real user") dan di-push ke `origin/main`.
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.
