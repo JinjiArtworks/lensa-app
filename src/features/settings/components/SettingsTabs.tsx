@@ -1,7 +1,6 @@
-export type SettingsTab = "team" | "notif" | "security";
+export type SettingsTab = "notif" | "security";
 
 const TABS: { key: SettingsTab; label: string }[] = [
-  { key: "team", label: "Team & Akses" },
   { key: "notif", label: "Notifikasi" },
   { key: "security", label: "Keamanan" },
 ];
