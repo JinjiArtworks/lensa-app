@@ -104,6 +104,7 @@ function randomDelay(): Promise<void> {
 
 export async function GET(request: NextRequest) {
   const businessId = request.nextUrl.searchParams.get("businessId");
+  const range = request.nextUrl.searchParams.get("range") ?? "year";
   if (!businessId) {
     return NextResponse.json({ error: "businessId query param is required" }, { status: 400 });
   }
@@ -114,24 +115,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Gagal mengambil data platform. Coba lagi." }, { status: 503 });
   }
 
+  const seed = `${businessId}:${range}`;
+
   const body: PlatformMetricsResponse = {
     meta: {
-      current: seededPlatformRaw(`${businessId}:meta:current`, BASE_PLATFORM_RAW.meta),
-      previous: seededPlatformRaw(`${businessId}:meta:previous`, BASE_PLATFORM_RAW.meta),
+      current: seededPlatformRaw(`${seed}:meta:current`, BASE_PLATFORM_RAW.meta),
+      previous: seededPlatformRaw(`${seed}:meta:previous`, BASE_PLATFORM_RAW.meta),
     },
     tiktok: {
-      current: seededPlatformRaw(`${businessId}:tiktok:current`, BASE_PLATFORM_RAW.tiktok),
-      previous: seededPlatformRaw(`${businessId}:tiktok:previous`, BASE_PLATFORM_RAW.tiktok),
+      current: seededPlatformRaw(`${seed}:tiktok:current`, BASE_PLATFORM_RAW.tiktok),
+      previous: seededPlatformRaw(`${seed}:tiktok:previous`, BASE_PLATFORM_RAW.tiktok),
     },
-    campaigns: seededCampaigns(businessId, BASE_CAMPAIGNS),
-    creatives: seededCreatives(businessId, BASE_CREATIVES),
+    campaigns: seededCampaigns(seed, BASE_CAMPAIGNS),
+    creatives: seededCreatives(seed, BASE_CREATIVES),
     trend: {
-      7: seededTrendSeries(`${businessId}:trend:7`, BASE_TREND_DATA[7]),
-      30: seededTrendSeries(`${businessId}:trend:30`, BASE_TREND_DATA[30]),
+      7: seededTrendSeries(`${seed}:trend:7`, BASE_TREND_DATA[7]),
+      30: seededTrendSeries(`${seed}:trend:30`, BASE_TREND_DATA[30]),
     },
     platformTrend: {
-      meta: seededPlatformTrendSeries(`${businessId}:platform-trend:meta`, BASE_PLATFORM_TREND.meta),
-      tiktok: seededPlatformTrendSeries(`${businessId}:platform-trend:tiktok`, BASE_PLATFORM_TREND.tiktok),
+      meta: seededPlatformTrendSeries(`${seed}:platform-trend:meta`, BASE_PLATFORM_TREND.meta),
+      tiktok: seededPlatformTrendSeries(`${seed}:platform-trend:tiktok`, BASE_PLATFORM_TREND.tiktok),
     },
   };
 
