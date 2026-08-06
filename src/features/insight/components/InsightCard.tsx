@@ -68,19 +68,19 @@ export function InsightCard({
             </span>
             {locked && <ProLockBadge tooltip="Kategori ini cuma tersedia di plan Pro" />}
           </div>
-          <div className="text-[13.5px] font-bold">{item.title}</div>
+          <div className={`text-[13.5px] font-bold ${locked ? "select-none blur-sm" : ""}`}>{item.title}</div>
         </div>
       </div>
       {locked ? (
         <>
-          <p className="text-xs leading-relaxed text-ink-3">
-            Detail &amp; rekomendasi lengkap insight ini cuma tersedia di plan Pro — plan Free cuma buka kategori
-            Positif.
+          <p className="select-none text-xs leading-relaxed text-ink-2 blur-sm">{item.body}</p>
+          <p className="text-[11px] text-ink-3">
+            Detail insight ini cuma tersedia di plan Pro — plan Free cuma buka kategori Positif.
           </p>
           <button
             type="button"
             onClick={onUpgradeClick}
-            className="w-full rounded-lg border border-line py-1.5 text-[11px] font-semibold text-ink-2"
+            className="w-full rounded-lg bg-accent py-1.5 text-[11px] font-bold text-ink"
           >
             Upgrade ke Pro buat buka
           </button>

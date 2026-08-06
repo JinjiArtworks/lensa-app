@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — 2 chart baru di Detail Platform: Perbandingan Periode (bar) + Efisiensi Klik (donut), biar nggak cuma trend chart doang)
+**Last updated:** 2026-08-06 (sesi keempatbelas — AI Insight lock treatment diperkuat: konten Pro beneran di-blur (bukan cuma disembunyiin/dim), termasuk angka stat yang berkorelasi ke kategori Pro)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -165,6 +165,13 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **`PlatformClickShareChart`** (donut) — pecah total impresi jadi "Diklik" vs "Tidak diklik" (dari raw `klik`/`impresi`), representasi visual buat CTR yang sebelumnya cuma angka di KPI card. Pola sama persis kayak `PlatformShareChart` Overview (donut+legend), warna platform buat porsi "Diklik", abu-abu buat sisanya.
 - **Data layer:** field baru `PLATFORM_RAW: Record<PlatformKey, {current,previous}>` ditambah ke `OverviewData` (langsung dari `raw.meta`/`raw.tiktok` yang emang udah lengkap, bukan hitungan baru) — sebelumnya `PLATFORMS[key].metrics` cuma nyimpen string terformat, Detail Platform sekarang punya akses ke angka mentah buat chart custom.
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route, Detail Platform +15KB wajar buat 2 chart baru, nggak ada bundle regression).
+
+**Lanjut sesi keempatbelas — user minta lock treatment AI Insight diperkuat: bukan cuma dim+ganti pesan (implementasi sebelumnya), tapi beneran blur kontennya, dan semua "benefit Pro" di halaman ini ikut disembunyiin/di-blur konsisten:**
+- **`InsightCard` locked state:** judul (`item.title`) dan body (`item.body`) sekarang di-render asli tapi pakai class `blur-sm select-none` (teks nyata di-blur, bukan diganti placeholder generik) — pesan penjelasan ("Detail insight ini cuma tersedia di plan Pro...") dan tombol upgrade tetap jelas/nggak di-blur, biar user tetap paham kenapa & harus ngapain.
+- **1 kesalahan ke-notice pas nulis pertama kali:** sempet keliru blur pesan penjelasan lock-nya sendiri (bukan konten aslinya) — langsung dikoreksi sebelum verifikasi.
+- **`PriorityPanel`:** sama polanya — judul + `impactNote` insight prioritas yang locked di-blur, tombol "Upgrade ke Pro" tetap jelas.
+- **`InsightStatsRow`:** 2 dari 3 angka statistik ("Perlu aksi segera", "Rekomendasi baru") berkorelasi langsung ke kategori Anomali/Rekomendasi yang Pro-only, jadi ikut di-blur + `ProLockBadge` buat Free ("Total insight" tetap kebuka, itu angka gabungan semua kategori termasuk Positif). Prop baru `isFree` dari `useProGate` yang udah ada di halaman.
+- Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.

@@ -43,18 +43,23 @@ export function PriorityPanel({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2 text-[12.5px] font-bold">
-                    {it.title}
+                    <span className={locked ? "select-none blur-sm" : ""}>{it.title}</span>
                     <span className="text-[11.5px] font-semibold text-ink-2">{it.platformLabel}</span>
                     {locked && <ProLockBadge tooltip="Rekomendasi prioritas cuma tersedia di plan Pro" />}
                   </div>
                   {locked ? (
-                    <button
-                      type="button"
-                      onClick={onUpgradeClick}
-                      className="mt-1 text-[11.5px] font-bold text-ink-3 underline decoration-line underline-offset-2"
-                    >
-                      Upgrade ke Pro buat lihat rekomendasi ini
-                    </button>
+                    <>
+                      <div className="mt-1 select-none text-[11.5px] leading-relaxed text-ink-2 blur-sm">
+                        {it.impactNote}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={onUpgradeClick}
+                        className="mt-1 text-[11.5px] font-bold text-accent-text"
+                      >
+                        Upgrade ke Pro buat lihat rekomendasi ini
+                      </button>
+                    </>
                   ) : (
                     <div className="mt-1 text-[11.5px] leading-relaxed text-ink-2">
                       {it.impactNote}{" "}

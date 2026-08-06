@@ -72,7 +72,7 @@ export default function InsightPage() {
       </div>
 
       <SectionLabel>Ringkasan</SectionLabel>
-      <InsightStatsRow stats={stats} />
+      <InsightStatsRow stats={stats} isFree={isFree} />
       <div className="mb-5 flex items-center gap-2.5 rounded-xl bg-accent-bg px-3.5 py-2.5">
         <TrendingUp className="size-4 shrink-0 text-accent-text" />
         <div className="text-xs text-accent-text">{getCompareLine(range.preset)}</div>
