@@ -3,20 +3,31 @@
 import { useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { captureMainContent } from "@/lib/page-capture";
 
 export function CopyAsReportButton({
   label = "Copy as report",
   disabled = false,
+  businessId,
 }: {
   label?: string;
   disabled?: boolean;
+  businessId?: string;
 }) {
   const showToast = useUiStore((s) => s.showToast);
+  const { isFree } = useProGate(businessId);
   const [copying, setCopying] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   async function handleClick() {
+    if (isFree) {
+      setUpgradeOpen(true);
+      return;
+    }
     setCopying(true);
     try {
       const canvas = await captureMainContent();
@@ -33,9 +44,18 @@ export function CopyAsReportButton({
   }
 
   return (
-    <Button variant="secondary" disabled={disabled || copying} onClick={handleClick}>
-      <ClipboardCheck className="size-4" />
-      {copying ? "Menyalin…" : label}
-    </Button>
+    <>
+      <Button variant="secondary" disabled={disabled || copying} onClick={handleClick}>
+        <ClipboardCheck className="size-4" />
+        {copying ? "Menyalin…" : label}
+        {isFree && <ProLockBadge tooltip="Fitur Pro — upgrade buat copy as report" />}
+      </Button>
+      <ProUpgradeDialog
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title="Copy as report terkunci"
+        description="Copy as report cuma tersedia di plan Pro. Upgrade buat buka akses."
+      />
+    </>
   );
 }

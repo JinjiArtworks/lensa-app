@@ -6,6 +6,8 @@ import { FilterBar, initialFilterValue, type FilterValue } from "@/components/sh
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
 import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
@@ -32,11 +34,13 @@ function SectionLabel({ children }: { children: string }) {
 export default function InsightPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const { lastSyncedAt } = useSyncStore();
+  const { isFree } = useProGate(activeBusinessId);
   const [range, setRange] = useState<FilterValue>(initialFilterValue("week"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const { data: overviewData } = useOverviewData(activeBusinessId, rangeKey);
   const [category, setCategory] = useState<"all" | InsightItem["category"]>("all");
   const [platform, setPlatform] = useState<"all" | "meta" | "tiktok">("all");
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Kartu anomali live (periode "Minggu Ini") butuh data platform bisnis aktif —
   // sebelum query itu resolve, getInsightsForPeriod jatuh balik ke item statis,
@@ -62,8 +66,8 @@ export default function InsightPage() {
         <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="week" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} label="Sync & Analisis Ulang" />
-          <CopyAsReportButton />
-          <ExportPdfButton fileName="ai-insight" />
+          <CopyAsReportButton businessId={activeBusinessId} />
+          <ExportPdfButton fileName="ai-insight" businessId={activeBusinessId} />
         </div>
       </div>
 
@@ -76,7 +80,7 @@ export default function InsightPage() {
 
       <SectionLabel>Aksi Prioritas</SectionLabel>
       <div className="mb-5">
-        <PriorityPanel items={priorityItems} />
+        <PriorityPanel items={priorityItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
       </div>
 
       <SectionLabel>Benchmark &amp; Rekomendasi Budget</SectionLabel>
@@ -92,7 +96,14 @@ export default function InsightPage() {
         category={category}
         onCategoryChange={setCategory}
       />
-      <InsightGrid items={visibleItems} />
+      <InsightGrid items={visibleItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
+
+      <ProUpgradeDialog
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title="Insight ini terkunci"
+        description="Plan Free cuma buka AI Insight kategori Positif. Upgrade ke Pro buat lihat Anomali & Rekomendasi lengkap."
+      />
     </div>
   );
 }

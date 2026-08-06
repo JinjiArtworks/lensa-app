@@ -101,6 +101,7 @@ export interface OverviewData {
   KPI_ROW_1: { label: string; value: string; cls: "up" | "down" | ""; sub: string }[];
   KPI_ROW_2: { label: string; value: string; cls: "up" | "down" | ""; sub: string }[];
   CHANNEL_CHART_DATA: { spend: { name: string; value: number }[]; closing: { name: string; value: number }[] };
+  EFFICIENCY_CHART_DATA: { ctr: { name: string; value: number }[]; cpa: { name: string; value: number }[] };
   ACTUALS: { roas: number; closing: number };
   CAMPAIGNS: Campaign[];
   CREATIVES: Record<string, Creative[]>;
@@ -176,11 +177,23 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
     ],
   };
 
+  const EFFICIENCY_CHART_DATA = {
+    ctr: [
+      { name: "Meta", value: raw.meta.current.ctr },
+      { name: "TikTok", value: raw.tiktok.current.ctr },
+    ],
+    cpa: [
+      { name: "Meta", value: cpaFromRaw(raw.meta.current) },
+      { name: "TikTok", value: cpaFromRaw(raw.tiktok.current) },
+    ],
+  };
+
   return {
     PLATFORMS,
     KPI_ROW_1,
     KPI_ROW_2,
     CHANNEL_CHART_DATA,
+    EFFICIENCY_CHART_DATA,
     ACTUALS: { roas: combinedCurrent.roas, closing: combinedCurrent.closing },
     CAMPAIGNS: raw.campaigns,
     CREATIVES: raw.creatives,

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProLockBadge } from "@/components/shared/ProLockBadge";
+import { ProUpgradeDialog } from "@/components/shared/ProUpgradeDialog";
+import { useProGate } from "@/components/shared/use-pro-gate";
 import { useUiStore } from "@/stores/ui";
 import { captureMainContent } from "@/lib/page-capture";
 
@@ -10,15 +13,23 @@ export function ExportPdfButton({
   fileName = "report",
   label = "Export as PDF",
   disabled = false,
+  businessId,
 }: {
   fileName?: string;
   label?: string;
   disabled?: boolean;
+  businessId?: string;
 }) {
   const showToast = useUiStore((s) => s.showToast);
+  const { isFree } = useProGate(businessId);
   const [exporting, setExporting] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   async function handleClick() {
+    if (isFree) {
+      setUpgradeOpen(true);
+      return;
+    }
     setExporting(true);
     try {
       const canvas = await captureMainContent();
@@ -44,9 +55,18 @@ export function ExportPdfButton({
   }
 
   return (
-    <Button variant="secondary" disabled={disabled || exporting} onClick={handleClick}>
-      <FileDown className="size-4" />
-      {exporting ? "Menyiapkan…" : label}
-    </Button>
+    <>
+      <Button variant="secondary" disabled={disabled || exporting} onClick={handleClick}>
+        <FileDown className="size-4" />
+        {exporting ? "Menyiapkan…" : label}
+        {isFree && <ProLockBadge tooltip="Fitur Pro — upgrade buat export PDF" />}
+      </Button>
+      <ProUpgradeDialog
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        title="Export as PDF terkunci"
+        description="Export as PDF cuma tersedia di plan Pro. Upgrade buat buka akses."
+      />
+    </>
   );
 }

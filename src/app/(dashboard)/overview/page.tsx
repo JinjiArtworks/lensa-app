@@ -5,8 +5,6 @@ import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
-import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
-import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { KpiGrid } from "@/features/overview-dashboard/components/KpiGrid";
@@ -15,16 +13,21 @@ import { ProactiveAlertCard } from "@/features/overview-dashboard/components/Pro
 import { ChannelChart } from "@/features/overview-dashboard/components/ChannelChart";
 import { TrendChart } from "@/features/overview-dashboard/components/TrendChart";
 import { PlatformShareChart } from "@/features/overview-dashboard/components/PlatformShareChart";
+import { PlatformEfficiencyChart } from "@/features/overview-dashboard/components/PlatformEfficiencyChart";
 import { CampaignTable } from "@/features/overview-dashboard/components/CampaignTable";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 
-// Lazy: this is the only thing on the page that reads Firestore directly
-// (real connectedPlatforms, not the mocked metrics API) — keeping it out of
-// the main chunk avoids pulling the Firestore SDK into Overview's initial JS
-// (same reasoning as NavAccountActions.tsx on the landing page).
+// Lazy: all 3 read Firestore directly (real connectedPlatforms/plan, not the
+// mocked metrics API) — keeping them out of the main chunk avoids pulling the
+// Firestore SDK into Overview's initial JS (same reasoning as
+// NavAccountActions.tsx on the landing page).
 const CoverageBanner = dynamic(() =>
   import("@/features/overview-dashboard/components/CoverageBanner").then((m) => m.CoverageBanner)
 );
+const CopyAsReportButton = dynamic(() =>
+  import("@/components/shared/CopyAsReportButton").then((m) => m.CopyAsReportButton)
+);
+const ExportPdfButton = dynamic(() => import("@/components/shared/ExportPdfButton").then((m) => m.ExportPdfButton));
 
 export default function OverviewPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
@@ -44,8 +47,8 @@ export default function OverviewPage() {
         <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="year" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} />
-          <CopyAsReportButton disabled={!data} />
-          <ExportPdfButton fileName="overview" disabled={!data} />
+          <CopyAsReportButton disabled={!data} businessId={activeBusinessId} />
+          <ExportPdfButton fileName="overview" disabled={!data} businessId={activeBusinessId} />
         </div>
       </div>
       <CoverageBanner />
@@ -71,8 +74,9 @@ export default function OverviewPage() {
             <ChannelChart chartData={data.CHANNEL_CHART_DATA} />
             <TrendChart trendData={data.TREND_DATA} />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
             <PlatformShareChart chartData={data.CHANNEL_CHART_DATA} />
+            <PlatformEfficiencyChart chartData={data.EFFICIENCY_CHART_DATA} />
           </div>
           <CampaignTable campaigns={data.CAMPAIGNS} creatives={data.CREATIVES} />
         </>

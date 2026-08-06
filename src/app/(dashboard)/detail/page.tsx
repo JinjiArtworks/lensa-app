@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
-import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
-import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
@@ -13,6 +12,13 @@ import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
 import { PlatformCampaignTable } from "@/features/detail-platform/components/PlatformCampaignTable";
+
+// Lazy: both read Firestore directly (plan gating) — keeps the Firestore SDK
+// out of this route's initial JS (same reasoning as Overview's CoverageBanner).
+const CopyAsReportButton = dynamic(() =>
+  import("@/components/shared/CopyAsReportButton").then((m) => m.CopyAsReportButton)
+);
+const ExportPdfButton = dynamic(() => import("@/components/shared/ExportPdfButton").then((m) => m.ExportPdfButton));
 
 export default function DetailPlatformPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
@@ -63,8 +69,8 @@ export default function DetailPlatformPage() {
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5">
                 <h2 className="text-[17px] font-bold">{activePlatform.name}</h2>
                 <div className="flex flex-wrap items-center gap-2" data-report-hide>
-                  <CopyAsReportButton />
-                  <ExportPdfButton fileName={`detail-platform-${platform}`} />
+                  <CopyAsReportButton businessId={activeBusinessId} />
+                  <ExportPdfButton fileName={`detail-platform-${platform}`} businessId={activeBusinessId} />
                 </div>
               </div>
               <PlatformKpiGrid entries={kpiEntries} />
