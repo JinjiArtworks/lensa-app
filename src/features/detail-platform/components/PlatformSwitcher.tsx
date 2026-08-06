@@ -1,47 +1,50 @@
+"use client";
+
+import { Lock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PLATFORM_LABELS, type PlatformKey } from "@/features/overview-dashboard/mock-data";
-import { ProLockBadge } from "@/components/shared/ProLockBadge";
 
 export type { PlatformKey };
+
+// "all" is an aggregate single view (combined KPI/trend/campaigns), never two
+// platforms rendered side by side — that's the Compare mode business-plan.md
+// §9 cut from scope. Still one view at a time, picked from one dropdown.
+export type DetailPlatformView = PlatformKey | "all";
+
+const VIEW_LABELS: Record<DetailPlatformView, string> = {
+  all: "Semua Platform",
+  meta: PLATFORM_LABELS.meta.name,
+  tiktok: PLATFORM_LABELS.tiktok.name,
+};
+
+const VIEW_ORDER: DetailPlatformView[] = ["all", "meta", "tiktok"];
 
 export function PlatformSwitcher({
   active,
   onSelect,
   isLocked = () => false,
 }: {
-  active: PlatformKey;
-  onSelect: (key: PlatformKey) => void;
-  isLocked?: (key: PlatformKey) => boolean;
+  active: DetailPlatformView;
+  onSelect: (key: DetailPlatformView) => void;
+  isLocked?: (key: DetailPlatformView) => boolean;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap gap-1.5">
-      {(Object.keys(PLATFORM_LABELS) as PlatformKey[]).map((key) => {
-        const p = PLATFORM_LABELS[key];
-        const locked = isLocked(key);
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onSelect(key)}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12.5px] font-semibold ${
-              key === active
-                ? "border-accent bg-accent text-ink"
-                : locked
-                  ? "border-line bg-gray-bg text-ink-3 opacity-70"
-                  : "border-line bg-card text-ink-2"
-            }`}
-          >
-            <span
-              className={`flex size-5 items-center justify-center rounded text-[9px] font-extrabold ${
-                key === active ? "bg-black/10 text-ink" : "bg-gray-bg text-ink-2"
-              }`}
-            >
-              {p.ic}
-            </span>
-            {p.name}
-            {locked && <ProLockBadge tooltip="Ganti ke platform ini, atau upgrade ke Pro buat pakai keduanya" />}
-          </button>
-        );
-      })}
+    <div className="mb-4 w-[210px]">
+      <Select value={active} onValueChange={(v) => onSelect(v as DetailPlatformView)}>
+        <SelectTrigger className="h-10 border-line bg-card text-[12.5px] font-semibold text-ink">
+          <SelectValue>{VIEW_LABELS[active]}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {VIEW_ORDER.map((key) => (
+            <SelectItem key={key} value={key}>
+              <span className="flex items-center gap-1.5">
+                {VIEW_LABELS[key]}
+                {isLocked(key) && <Lock className="size-3 shrink-0 text-ink-3" />}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

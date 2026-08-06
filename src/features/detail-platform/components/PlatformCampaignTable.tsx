@@ -1,16 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { PLATFORM_LABELS, STATUS_LABEL, formatRupiah, type Campaign } from "@/features/overview-dashboard/mock-data";
-import type { PlatformKey } from "./PlatformSwitcher";
+import type { DetailPlatformView } from "./PlatformSwitcher";
 
 export function PlatformCampaignTable({
   platformKey,
   campaigns,
 }: {
-  platformKey: PlatformKey;
+  platformKey: DetailPlatformView;
   campaigns: Campaign[];
 }) {
-  const platformName = PLATFORM_LABELS[platformKey].name;
-  const rows = campaigns.filter((c) => c.channel === platformName);
+  const platformName = platformKey === "all" ? "Semua Platform" : PLATFORM_LABELS[platformKey].name;
+  const rows = platformKey === "all" ? campaigns : campaigns.filter((c) => c.channel === platformName);
 
   return (
     <div className="rounded-2xl border border-line bg-card p-4">

@@ -2,20 +2,17 @@
 
 import { useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, XAxis } from "recharts";
-import { PLATFORM_LABELS } from "@/features/overview-dashboard/mock-data";
-import { PLATFORM_CHART_COLOR } from "../mock-data";
-import type { PlatformKey } from "./PlatformSwitcher";
 
 export function PlatformTrendChart({
-  platformKey,
-  trendData,
+  data,
+  color,
+  label,
 }: {
-  platformKey: PlatformKey;
-  trendData: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
+  data: { day: string; spend: number; closing: number }[];
+  color: string;
+  label: string;
 }) {
   const [metric, setMetric] = useState<"spend" | "closing">("spend");
-  const data = trendData[platformKey];
-  const color = PLATFORM_CHART_COLOR[platformKey];
 
   return (
     <div className="mb-4 rounded-2xl border border-line bg-card p-4">
@@ -50,7 +47,7 @@ export function PlatformTrendChart({
       </ResponsiveContainer>
       <div className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-2">
         <i className="inline-block size-2.5 rounded-sm" style={{ background: color }} />
-        {PLATFORM_LABELS[platformKey].name}
+        {label}
       </div>
     </div>
   );
