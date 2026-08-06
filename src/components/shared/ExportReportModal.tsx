@@ -37,33 +37,52 @@ export function ExportReportModal({
 }) {
   const showToast = useUiStore((s) => s.showToast);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(toPlainText(data));
-      showToast("Disalin ke clipboard");
-    } catch {
-      showToast("Gagal menyalin — coba lagi atau copy manual");
-    }
-    onClose();
+  async function renderCardCanvas() {
+    if (!cardRef.current) return null;
+    const { default: html2canvas } = await import("html2canvas");
+    return html2canvas(cardRef.current, { backgroundColor: "#ffffff", scale: 2 });
   }
 
-  async function handleDownload() {
-    if (!cardRef.current) return;
-    setDownloading(true);
+  async function handleCopy() {
+    setCopying(true);
     try {
-      const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: "#ffffff", scale: 2 });
-      const link = document.createElement("a");
-      link.download = `lensa-report-${data.scope.toLowerCase().replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      showToast("Gambar diunduh");
+      const canvas = await renderCardCanvas();
+      if (!canvas) throw new Error("card not ready");
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob || typeof ClipboardItem === "undefined") throw new Error("image clipboard unsupported");
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      showToast("Gambar report disalin ke clipboard");
     } catch {
-      showToast("Gagal membuat gambar — coba lagi");
+      // Browsers without image-clipboard support (or a render failure) still get something useful.
+      try {
+        await navigator.clipboard.writeText(toPlainText(data));
+        showToast("Browser ini belum dukung copy gambar — disalin sebagai teks");
+      } catch {
+        showToast("Gagal menyalin — coba lagi");
+      }
     } finally {
-      setDownloading(false);
+      setCopying(false);
+      onClose();
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const canvas = await renderCardCanvas();
+      if (!canvas) throw new Error("card not ready");
+      const { default: jsPDF } = await import("jspdf");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save(`lensa-report-${data.scope.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+      showToast("Report PDF diunduh");
+    } catch {
+      showToast("Gagal membuat PDF — coba lagi");
+    } finally {
+      setExporting(false);
       onClose();
     }
   }
@@ -86,11 +105,11 @@ export function ExportReportModal({
           <div className="mt-2.5 text-right text-[10.5px] text-ink-3">via Lensa</div>
         </div>
         <div className="flex gap-2">
-          <Button className="flex-1 justify-center" onClick={handleCopy}>
-            Copy
+          <Button className="flex-1 justify-center" disabled={copying} onClick={handleCopy}>
+            {copying ? "Menyalin…" : "Copy"}
           </Button>
-          <Button variant="ghost" className="flex-1 justify-center" disabled={downloading} onClick={handleDownload}>
-            {downloading ? "Menyiapkan…" : "Download"}
+          <Button variant="ghost" className="flex-1 justify-center" disabled={exporting} onClick={handleExport}>
+            {exporting ? "Menyiapkan…" : "Export"}
           </Button>
         </div>
       </DialogContent>
