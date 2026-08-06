@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — Dashboard Revamp Fase 1-7 selesai, lanjut 2 fix susulan: Detail Platform switcher jadi dropdown + opsi Semua Platform, Sidebar pakai nama user asli)
+**Last updated:** 2026-08-06 (sesi keempatbelas — Copy as Report & Export as PDF diganti jadi whole-page capture, brainstorming inline tanpa spec file atas permintaan user)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -83,6 +83,16 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 - **`PlatformConnectionList`'s tombol "Hubungkan" sebelumnya langsung mulai simulasi connect pas diklik** — sekarang munculin confirm dialog dulu ("Binding ke X? ... permanen sampe upgrade"), simulasi (spinner+Firestore write) baru jalan abis dikonfirmasi.
 - Verifikasi: `.next` cache sempet nyimpen type stale ke route lama abis rename (`connect-platform/page.ts` nggak ketemu) — di-`rm -rf .next` dulu baru `tsc --noEmit` bersih. `next build` sukses (17 route, `/binding` baru gantiin `/connect-platform`), `lint` bersih.
 - **2 commit** (`b0e622c` business-setup overhaul, `81fc985` Binding rename + confirm dialog) — rename foldernya kebawa ke commit pertama karena `git mv` udah nge-stage duluan, jadi split commit-nya nggak 100% rapi kayak rencana tapi kedua commit tetep logically coherent. Di-push ke `origin/main`.
+
+**Lanjut sesi keempatbelas — "Copy as Report" & "Export as PDF" diganti jadi whole-page capture (brainstorming skill dipakai buat scope, user skip tulis spec file & minta langsung eksekusi setelah desain disetujui inline):**
+- **Kenapa:** implementasi lama (`ExportReportModal`) cuma nangkep "kartu ringkasan" kecil (scope/ROAS/spend/note atau daftar insight) via `html2canvas`, bukan halaman aslinya — user maunya beneran screenshot/PDF dari seluruh halaman. Tombol tetap di 3 halaman yang sama (Overview, Detail Platform, AI Insight), cuma perilakunya yang diganti.
+- **`ExportReportModal.tsx` + type `ExportReportData` dihapus total** — nggak ada lagi modal preview atau data kartu kurasi (scope/roas/spend/note/items). Tiap page-level `reportData` construction yang lama (termasuk helper `rangeLabel` yang cuma dipakai buat itu) juga dihapus.
+- **Util baru `src/lib/page-capture.ts`**: `captureMainContent()` — satu fungsi `html2canvas` yang dipakai bareng oleh kedua tombol, target capturenya `<main id="dashboard-main-content">` (id baru ditambah di `(dashboard)/layout.tsx`) yang otomatis exclude Sidebar/TopBar karena keduanya dirender di luar `<main>`.
+- **Elemen kontrol interaktif (filter dropdown, sync button, kedua tombol report) disembunyikan dari hasil capture** lewat atribut `data-report-hide` + `ignoreElements` di html2canvas — judul/subjudul halaman tetap kelihatan. Di Detail Platform, cuma wrapper tombolnya yang disembunyiin di baris nama platform, `<h2>` nama platform-nya tetap ikut ke-capture.
+- **`CopyAsReportButton`**: nggak lagi terima prop `data` — klik langsung capture → `canvas.toBlob` → `ClipboardItem` ke clipboard, toast sukses/gagal. Fallback teks yang lama dibuang (nggak ada lagi data terstruktur buat difallback-kan).
+- **Komponen baru `ExportPdfButton.tsx`**: capture → `jsPDF` custom page-size = dimensi canvas (pola `hotfixes: ["px_scaling"]` yang udah ada dipertahankan) → download `lensa-report-<slug>.pdf`. Reuse `html2canvas`+`jspdf` yang udah terpasang, nggak ada dependency baru.
+- Verifikasi: `tsc --noEmit` bersih, `npm run lint` bersih, `next build` sukses (17 route, nggak berubah).
+- **Belum dicoba manual di browser** — subagent/controller di sesi ini nggak buka browser buat klik tombolnya beneran, jadi copy-image-ke-clipboard & download PDF-nya baru diverifikasi lewat code-level trace, belum smoke test visual.
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FilterBar, initialFilterValue, type FilterPreset, type FilterValue } from "@/components/shared/FilterBar";
+import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
-import type { ExportReportData } from "@/components/shared/ExportReportModal";
+import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
@@ -13,19 +13,6 @@ import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
 import { PlatformCampaignTable } from "@/features/detail-platform/components/PlatformCampaignTable";
-
-function rangeLabel(preset: FilterPreset): string {
-  switch (preset) {
-    case "week":
-      return "7 hari";
-    case "month":
-      return "30 hari";
-    case "year":
-      return "1 tahun";
-    case "custom":
-      return "periode custom";
-  }
-}
 
 export default function DetailPlatformPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
@@ -46,7 +33,7 @@ export default function DetailPlatformPage() {
             {lastSyncedAt}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="year" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} />
         </div>
@@ -71,20 +58,14 @@ export default function DetailPlatformPage() {
             label,
             ...m,
           }));
-          const period = rangeLabel(range.preset);
-          const reportData: ExportReportData = {
-            scope: activePlatform.name,
-            roas: `${activePlatform.metrics.ROAS.value} ROAS`,
-            spend: activePlatform.metrics.Spend.value,
-            closing: activePlatform.metrics.Closing.value,
-            note: `Performa ${activePlatform.name} ${period} terakhir — cek tab Campaign untuk breakdown per campaign.`,
-            period,
-          };
           return (
             <>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5">
                 <h2 className="text-[17px] font-bold">{activePlatform.name}</h2>
-                <CopyAsReportButton data={reportData} />
+                <div className="flex flex-wrap items-center gap-2" data-report-hide>
+                  <CopyAsReportButton />
+                  <ExportPdfButton fileName={`detail-platform-${platform}`} />
+                </div>
               </div>
               <PlatformKpiGrid entries={kpiEntries} />
               <PlatformTrendChart

@@ -9,7 +9,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar />
         <div className="min-w-0 flex-1">
           <TopBar />
-          <main className="mx-auto max-w-[1260px] px-7 py-6 pb-16 max-[640px]:px-4 max-[640px]:py-4">
+          <main
+            id="dashboard-main-content"
+            className="mx-auto max-w-[1260px] px-7 py-6 pb-16 max-[640px]:px-4 max-[640px]:py-4"
+          >
             {children}
           </main>
         </div>

@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
-import { FilterBar, initialFilterValue, PRESET_LABELS, type FilterValue } from "@/components/shared/FilterBar";
+import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
-import type { ExportReportData } from "@/components/shared/ExportReportModal";
+import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
@@ -52,13 +52,6 @@ export default function InsightPage() {
     [periodItems, category, platform]
   );
 
-  const reportData: ExportReportData = {
-    scope: "AI Insight",
-    period: PRESET_LABELS[range.preset],
-    items: priorityItems.length > 0 ? priorityItems.map((it) => it.title) : ["Tidak ada aksi prioritas periode ini"],
-    note: getCompareLine(range.preset),
-  };
-
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
@@ -66,10 +59,11 @@ export default function InsightPage() {
           <h1 className="text-[23px] font-extrabold tracking-tight">AI Insight</h1>
           <div className="mt-0.5 text-xs text-ink-3">Rekomendasi &amp; anomali otomatis · data terakhir diperbarui {lastSyncedAt}</div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="week" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} label="Sync & Analisis Ulang" />
-          <CopyAsReportButton data={reportData} />
+          <CopyAsReportButton />
+          <ExportPdfButton fileName="ai-insight" />
         </div>
       </div>
 

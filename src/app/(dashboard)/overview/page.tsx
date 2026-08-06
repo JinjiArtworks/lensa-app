@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FilterBar, initialFilterValue, type FilterPreset, type FilterValue } from "@/components/shared/FilterBar";
+import { FilterBar, initialFilterValue, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
 import { CopyAsReportButton } from "@/components/shared/CopyAsReportButton";
-import type { ExportReportData } from "@/components/shared/ExportReportModal";
+import { ExportPdfButton } from "@/components/shared/ExportPdfButton";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { KpiGrid } from "@/features/overview-dashboard/components/KpiGrid";
@@ -18,19 +18,6 @@ import { PlatformShareChart } from "@/features/overview-dashboard/components/Pla
 import { CampaignTable } from "@/features/overview-dashboard/components/CampaignTable";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 
-function rangeLabel(preset: FilterPreset): string {
-  switch (preset) {
-    case "week":
-      return "7 hari";
-    case "month":
-      return "30 hari";
-    case "year":
-      return "1 tahun";
-    case "custom":
-      return "periode custom";
-  }
-}
-
 export default function OverviewPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const { lastSyncedAt } = useSyncStore();
@@ -39,17 +26,6 @@ export default function OverviewPage() {
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey);
 
-  const reportData: ExportReportData = data
-    ? {
-        scope: "Semua Platform",
-        roas: `${data.KPI_ROW_1[2].value} ROAS`,
-        spend: data.KPI_ROW_1[0].value,
-        closing: data.KPI_ROW_1[1].value,
-        note: "ROAS periode ini sedikit menurun — pertimbangkan review targeting & creative minggu depan.",
-        period: rangeLabel(range.preset),
-      }
-    : { scope: "", roas: "", spend: "", closing: "", note: "" };
-
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
@@ -57,10 +33,11 @@ export default function OverviewPage() {
           <h1 className="text-[23px] font-extrabold tracking-tight">Dashboard</h1>
           <div className="mt-0.5 text-xs text-ink-3">Toko Baju Sinta · data terakhir diperbarui {lastSyncedAt}</div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="year" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} />
-          <CopyAsReportButton data={reportData} disabled={!data} />
+          <CopyAsReportButton disabled={!data} />
+          <ExportPdfButton fileName="overview" disabled={!data} />
         </div>
       </div>
       <CoverageBanner />
