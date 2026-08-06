@@ -198,7 +198,7 @@ function DetailPlatformNavItem({
         <span className="max-[760px]:hidden">{item.label}</span>
       </Link>
       {active && (
-        <div className="ml-2 mt-0.5 flex flex-col gap-0.5 border-l border-line pl-2.5 max-[760px]:hidden">
+        <div className="ml-2 mt-2 flex flex-col gap-1 border-l border-line pl-2.5 max-[760px]:hidden">
           {DETAIL_VIEW_ORDER.map((key) => {
             const isActive = detailPlatformView === key;
             const locked = isViewLocked(key);
