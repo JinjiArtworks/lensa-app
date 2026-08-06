@@ -1,53 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   seededPlatformRaw,
-  seededCampaigns,
-  seededCreatives,
   seededTrendSeries,
   seededPlatformTrendSeries,
 } from "@/features/overview-dashboard/lib/seed";
 import type { PlatformRaw } from "@/features/overview-dashboard/lib/kpi";
-import type { Campaign, Creative, PlatformMetricsResponse } from "@/features/overview-dashboard/mock-data";
+import type { PlatformMetricsResponse } from "@/features/overview-dashboard/mock-data";
 
 // Hand-tuned baseline every business's numbers vary around — not itself
 // served to the client, only the seeded variance of it is.
 const BASE_PLATFORM_RAW: Record<"meta" | "tiktok", PlatformRaw> = {
   meta: { spend: 2.4, closing: 40, roas: 2.9, ctr: 3.6, impresi: 128, klik: 4600, campaignAktif: 7 },
   tiktok: { spend: 1.4, closing: 22, roas: 2.3, ctr: 2.8, impresi: 96, klik: 2900, campaignAktif: 5 },
-};
-
-// Same catalog/identity for every business (name, channel, status, creative
-// list keys) — only performance numbers vary per business, see
-// seededCampaigns/seededCreatives below.
-const BASE_CAMPAIGNS: Campaign[] = [
-  { name: "Summer Sale 2025", status: "active", channel: "Meta Ads", spend: 4250, ctr: "3.6%", conv: 123, edited: "09/12/2025" },
-  { name: "Autumn Collection", status: "paused", channel: "Meta Ads", spend: 3420, ctr: "4.2%", conv: 87, edited: "08/12/2025" },
-  { name: "Back-to-School Promo", status: "active", channel: "TikTok Ads", spend: 1980, ctr: "2.9%", conv: 121, edited: "09/12/2025" },
-  { name: "Holiday Teaser Ads", status: "archived", channel: "TikTok Ads", spend: 1300, ctr: "1.7%", conv: 44, edited: "07/12/2025" },
-  { name: "Retargeting Cart Abandon", status: "pending", channel: "Meta Ads", spend: 860, ctr: "4.2%", conv: 44, edited: "08/12/2025" },
-  { name: "Product Launch Beta", status: "active", channel: "TikTok Ads", spend: 1760, ctr: "5.1%", conv: 87, edited: "07/12/2025" },
-];
-
-const BASE_CREATIVES: Record<string, Creative[]> = {
-  "Summer Sale 2025": [
-    { name: "Video Diskon 50% — 15 detik", ctr: "4.8%", status: "Winning" },
-    { name: "Carousel Koleksi Musim Panas", ctr: "3.4%", status: "Winning" },
-    { name: "Statis Harga Coret", ctr: "2.1%", status: "Fatigue" },
-  ],
-  "Autumn Collection": [
-    { name: "Lookbook Autumn — Reels", ctr: "4.6%", status: "Winning" },
-    { name: "Foto Produk Outdoor", ctr: "1.9%", status: "Fatigue" },
-  ],
-  "Back-to-School Promo": [
-    { name: "UGC Testimoni Pelajar", ctr: "5.2%", status: "Winning" },
-    { name: "Bundle Seragam — Statis", ctr: "2.4%", status: "Baru" },
-    { name: "Video Unboxing 20 detik", ctr: "3.0%", status: "Baru" },
-  ],
-  "Product Launch Beta": [
-    { name: "Teaser Produk Baru — 10 detik", ctr: "5.6%", status: "Winning" },
-    { name: "Behind the Scene Produksi", ctr: "4.1%", status: "Baru" },
-    { name: "Slideshow Fitur Produk", ctr: "2.2%", status: "Fatigue" },
-  ],
 };
 
 const BASE_TREND_DATA: Record<7 | 30, { day: string; current: number; previous: number }[]> = {
@@ -126,8 +90,6 @@ export async function GET(request: NextRequest) {
       current: seededPlatformRaw(`${seed}:tiktok:current`, BASE_PLATFORM_RAW.tiktok),
       previous: seededPlatformRaw(`${seed}:tiktok:previous`, BASE_PLATFORM_RAW.tiktok),
     },
-    campaigns: seededCampaigns(seed, BASE_CAMPAIGNS),
-    creatives: seededCreatives(seed, BASE_CREATIVES),
     trend: {
       7: seededTrendSeries(`${seed}:trend:7`, BASE_TREND_DATA[7]),
       30: seededTrendSeries(`${seed}:trend:30`, BASE_TREND_DATA[30]),

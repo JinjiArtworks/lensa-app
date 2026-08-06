@@ -66,32 +66,12 @@ function buildMetrics(current: PlatformRaw, previous: PlatformRaw): Record<strin
   };
 }
 
-export type CampaignStatus = "active" | "paused" | "pending" | "archived";
-
-export interface Campaign {
-  name: string;
-  status: CampaignStatus;
-  channel: "Meta Ads" | "TikTok Ads";
-  spend: number;
-  ctr: string;
-  conv: number;
-  edited: string;
-}
-
-export interface Creative {
-  name: string;
-  ctr: string;
-  status: "Winning" | "Fatigue" | "Baru";
-}
-
-// The full shape returned by GET /api/platform-metrics — campaigns/creatives/
-// trend/platformTrend are seeded per businessId server-side (see the Route
-// Handler), same as meta/tiktok.
+// The full shape returned by GET /api/platform-metrics — trend/platformTrend
+// are seeded per businessId server-side (see the Route Handler), same as
+// meta/tiktok.
 export interface PlatformMetricsResponse {
   meta: { current: PlatformRaw; previous: PlatformRaw };
   tiktok: { current: PlatformRaw; previous: PlatformRaw };
-  campaigns: Campaign[];
-  creatives: Record<string, Creative[]>;
   trend: Record<7 | 30, { day: string; current: number; previous: number }[]>;
   platformTrend: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
 }
@@ -103,8 +83,6 @@ export interface OverviewData {
   CHANNEL_CHART_DATA: { spend: { name: string; value: number }[]; closing: { name: string; value: number }[] };
   EFFICIENCY_CHART_DATA: { ctr: { name: string; value: number }[]; cpa: { name: string; value: number }[] };
   ACTUALS: { roas: number; closing: number };
-  CAMPAIGNS: Campaign[];
-  CREATIVES: Record<string, Creative[]>;
   TREND_DATA: Record<7 | 30, { day: string; current: number; previous: number }[]>;
   PLATFORM_TREND: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
 }
@@ -195,24 +173,9 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
     CHANNEL_CHART_DATA,
     EFFICIENCY_CHART_DATA,
     ACTUALS: { roas: combinedCurrent.roas, closing: combinedCurrent.closing },
-    CAMPAIGNS: raw.campaigns,
-    CREATIVES: raw.creatives,
     TREND_DATA: raw.trend,
     PLATFORM_TREND: raw.platformTrend,
   };
 }
 
 export const TARGETS = { roas: 3.5, closing: 90 };
-
-export const STATUS_LABEL: Record<CampaignStatus, string> = {
-  active: "Active",
-  paused: "Paused",
-  pending: "Pending Approval",
-  archived: "Archived",
-};
-
-export function formatRupiah(nRibu: number): string {
-  return "Rp" + (nRibu * 1000).toLocaleString("id-ID");
-}
-
-export const PAGE_SIZE = 5;

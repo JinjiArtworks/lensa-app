@@ -14,7 +14,6 @@ import { ChannelChart } from "@/features/overview-dashboard/components/ChannelCh
 import { TrendChart } from "@/features/overview-dashboard/components/TrendChart";
 import { PlatformShareChart } from "@/features/overview-dashboard/components/PlatformShareChart";
 import { PlatformEfficiencyChart } from "@/features/overview-dashboard/components/PlatformEfficiencyChart";
-import { CampaignTable } from "@/features/overview-dashboard/components/CampaignTable";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 
 // Lazy: all 3 read Firestore directly (real connectedPlatforms/plan, not the
@@ -78,7 +77,6 @@ export default function OverviewPage() {
             <PlatformShareChart chartData={data.CHANNEL_CHART_DATA} />
             <PlatformEfficiencyChart chartData={data.EFFICIENCY_CHART_DATA} />
           </div>
-          <CampaignTable campaigns={data.CAMPAIGNS} creatives={data.CREATIVES} />
         </>
       )}
     </div>

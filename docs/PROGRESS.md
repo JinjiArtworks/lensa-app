@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-05:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap, Billing UI+simulasi lengkap). **Phase 4 (Polish & Write-up) masih berjalan** — sisanya: review checklist per fitur (`feature-specs.md`), responsive check menyeluruh, tulis bagian assessment (Product Thinking/Depth/Breadth/AI Leverage berdasarkan `business-plan.md`+`AGENTS.md`), dan deploy ke server yang disediakan BDD (belum dicek instruksinya).
 
-**Last updated:** 2026-08-06 (sesi keempatbelas — tombol "Upgrade ke Pro buat buka" di Binding diganti jadi primary style, konsisten sama tombol "Hubungkan" di sampingnya)
+**Last updated:** 2026-08-06 (sesi keempatbelas — semua UI campaign management dihapus total — Overview & Detail Platform gak pernah punya fitur kelola campaign beneran, cuma tabel statis)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -153,6 +153,12 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Lanjut sesi keempatbelas — polish kecil: tombol "Upgrade ke Pro buat buka" di kartu locked Binding diganti dari outline (`border border-line`) jadi primary (`bg-accent text-ink`), matching gaya tombol "Hubungkan" di kartu yang belum locked.**
 - Verifikasi: `tsc --noEmit` bersih, `lint` bersih, `next build` sukses (16 route).
+
+**Lanjut sesi keempatbelas — user minta semua yang berhubungan campaign dihapus dari Overview & Detail Platform karena Lensa nggak punya fitur manajemen campaign beneran (tabelnya cuma nampilin data statis, gak ada aksi apa-apa):**
+- **3 komponen dihapus total:** `CampaignTable.tsx`+`CampaignDetailModal.tsx` (Overview), `PlatformCampaignTable.tsx` (Detail Platform).
+- **Data layer ikut dibersihin** (bukan cuma UI, biar gak ada dead code): `Campaign`/`Creative`/`CampaignStatus` interface, `STATUS_LABEL`, `formatRupiah`, `PAGE_SIZE` di `mock-data.ts` — dihapus semua, cuma dipakai 3 komponen yang barusan dihapus. `PlatformMetricsResponse`/`OverviewData` kehilangan field `campaigns`/`creatives`. API route (`/api/platform-metrics`) kehilangan `BASE_CAMPAIGNS`/`BASE_CREATIVES` + seeding-nya. `seed.ts` kehilangan `seededCampaigns`/`seededCreatives` (udah nggak dipanggil siapa pun).
+- **KPI "Campaign Aktif" (angka doang, bukan tabel kelola) TETAP ADA** — itu cuma metrik hitungan kayak Spend/ROAS/CTR yang lain, bukan fitur manajemen, jadi di luar scope permintaan ini.
+- Verifikasi: `tsc --noEmit` bersih (nggak ada reference nyangkut), `lint` bersih, `next build` sukses (16 route, bundle size turun dikit di Overview & Detail Platform).
 
 **Sesi ketigabelas (2026-08-05) — deploy Vercel fix, lalu auth UX polish + plan Free/Pro beneran + logout + toast feedback, semua dikerjain langsung tanpa plan file:**
 - **`auth/invalid-api-key` di `https://lensa-app-eight.vercel.app` — root cause: Vercel nggak punya env var Firebase sama sekali** (`vercel env ls` kosong total di semua environment), padahal `.env.local` lokal udah keisi. Fix: push 6 `NEXT_PUBLIC_FIREBASE_*` var ke Vercel production via `vercel env add`, lalu `vercel --prod --force` (redeploy paksa, skip build cache lama). Diverifikasi: API key (prefix `AIzaSy`) sekarang ada di bundle `layout.js`/`sign-up/page.js` hasil build baru. **Belum dikonfirmasi user retest sign-up beneran di browser** — itu yang perlu dicek pertama kalau lanjut sesi berikutnya.

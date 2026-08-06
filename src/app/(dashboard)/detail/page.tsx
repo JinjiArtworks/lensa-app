@@ -11,7 +11,6 @@ import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-
 import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
-import { PlatformCampaignTable } from "@/features/detail-platform/components/PlatformCampaignTable";
 
 // Lazy: both read Firestore directly (plan gating) — keeps the Firestore SDK
 // out of this route's initial JS (same reasoning as Overview's CoverageBanner).
@@ -79,7 +78,6 @@ export default function DetailPlatformPage() {
                 color={PLATFORM_CHART_COLOR[platform]}
                 label={activePlatform.name}
               />
-              <PlatformCampaignTable platformKey={platform} campaigns={data.CAMPAIGNS} />
             </>
           );
         })()

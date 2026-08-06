@@ -42,50 +42,11 @@ export function seededPlatformRaw(seed: string, base: PlatformRaw, variancePct =
 }
 
 // A single +/- variancePct multiplier seeded from `seed` — the building block
-// for varying campaigns/creatives/trend series below, where each item needs
-// its own independent scale rather than sharing seededPlatformRaw's per-field
-// PRNG stream.
+// for varying trend series below, where each series needs its own independent
+// scale rather than sharing seededPlatformRaw's per-field PRNG stream.
 export function seededVariance(seed: string, variancePct = 0.25): number {
   const rand = mulberry32(hashString(seed));
   return 1 - variancePct + rand() * variancePct * 2;
-}
-
-// Same campaign catalog (name/channel/status) every business — only spend,
-// CTR and conversions vary, keyed per campaign name so numbers stay stable
-// across re-fetches for the same business.
-export function seededCampaigns<T extends { name: string; spend: number; ctr: string; conv: number }>(
-  seed: string,
-  base: T[],
-  variancePct = 0.25
-): T[] {
-  return base.map((campaign) => {
-    const scale = seededVariance(`${seed}:${campaign.name}`, variancePct);
-    const ctrValue = parseFloat(campaign.ctr) * scale;
-    return {
-      ...campaign,
-      spend: Math.round(campaign.spend * scale),
-      conv: Math.max(1, Math.round(campaign.conv * scale)),
-      ctr: `${ctrValue.toFixed(1)}%`,
-    };
-  });
-}
-
-// Same shape as seededCampaigns but for the per-campaign creative list — only
-// CTR varies, name/status stay put.
-export function seededCreatives<T extends { name: string; ctr: string }>(
-  seed: string,
-  base: Record<string, T[]>,
-  variancePct = 0.2
-): Record<string, T[]> {
-  const out: Record<string, T[]> = {};
-  for (const [campaignName, creatives] of Object.entries(base)) {
-    out[campaignName] = creatives.map((creative) => {
-      const scale = seededVariance(`${seed}:${campaignName}:${creative.name}`, variancePct);
-      const ctrValue = parseFloat(creative.ctr) * scale;
-      return { ...creative, ctr: `${ctrValue.toFixed(1)}%` };
-    });
-  }
-  return out;
 }
 
 // One scale factor applied uniformly across the whole series (not per-point)
