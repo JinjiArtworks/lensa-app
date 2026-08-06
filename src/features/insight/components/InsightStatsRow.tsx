@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { ProLockBadge } from "@/components/shared/ProLockBadge";
 
 export function InsightStatsRow({
@@ -18,7 +19,11 @@ export function InsightStatsRow({
       {items.map((it) => (
         <div key={it.label} className="rounded-xl border border-line bg-card px-4 py-2.5 text-xs text-ink-2">
           <div className="flex items-center gap-1.5">
-            <b className={`block text-[15px] text-ink ${it.locked ? "select-none blur-sm" : ""}`}>{it.value}</b>
+            {it.locked ? (
+              <Lock className="size-3.5 text-ink-3" />
+            ) : (
+              <b className="block text-[15px] text-ink">{it.value}</b>
+            )}
             {it.locked && <ProLockBadge tooltip="Angka ini cuma tersedia di plan Pro" />}
           </div>
           {it.label}

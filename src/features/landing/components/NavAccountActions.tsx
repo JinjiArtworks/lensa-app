@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { useUiStore } from "@/stores/ui";
 import { useUserProfile } from "@/features/auth/api/use-user-profile";
 import { useBusinesses } from "@/features/app-shell/api/use-businesses";
+import { useLogout } from "@/features/auth/use-logout";
 
 // Split out from Nav so the Firestore SDK it pulls in (useUserProfile,
 // useBusinesses) only loads for visitors who are actually logged in — Nav
@@ -20,6 +22,7 @@ export function NavAccountActions({
   onNavigate?: () => void;
 }) {
   const router = useRouter();
+  const logout = useLogout();
   const user = useAuthStore((s) => s.user);
   const { data: profile } = useUserProfile(user?.uid);
   const { data: businesses } = useBusinesses(user?.uid);
@@ -39,6 +42,10 @@ export function NavAccountActions({
         <Button className="mt-1 w-full justify-center" onClick={goToDashboard}>
           Ke Dashboard
         </Button>
+        <Button variant="ghost" className="mt-1 w-full justify-center" onClick={logout}>
+          <LogOut className="size-4" />
+          Keluar
+        </Button>
       </>
     );
   }
@@ -47,6 +54,15 @@ export function NavAccountActions({
     <>
       <span className="text-[13px] font-semibold text-ink-2">Halo, {displayName}</span>
       <Button onClick={goToDashboard}>Ke Dashboard</Button>
+      <button
+        type="button"
+        onClick={logout}
+        title="Keluar"
+        aria-label="Keluar"
+        className="text-ink-3 hover:text-red"
+      >
+        <LogOut className="size-4" />
+      </button>
     </>
   );
 }
