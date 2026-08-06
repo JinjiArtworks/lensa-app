@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilterBar, initialFilterValue, type FilterPreset, type FilterValue } from "@/components/shared/FilterBar";
 import { SyncButton } from "@/components/shared/SyncButton";
@@ -13,8 +13,6 @@ import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
 import { PlatformCampaignTable } from "@/features/detail-platform/components/PlatformCampaignTable";
-
-const ALL_PLATFORM_COLOR = "#6b6b76"; // neutral ink-2 — never shown alongside meta/tiktok at once, so no CVD pairing to validate
 
 function rangeLabel(preset: FilterPreset): string {
   switch (preset) {
@@ -37,15 +35,6 @@ export default function DetailPlatformPage() {
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey);
-
-  const mergedTrend = useMemo(() => {
-    if (!data) return [];
-    return data.PLATFORM_TREND.meta.map((point, i) => ({
-      day: point.day,
-      spend: point.spend + data.PLATFORM_TREND.tiktok[i].spend,
-      closing: point.closing + data.PLATFORM_TREND.tiktok[i].closing,
-    }));
-  }, [data]);
 
   return (
     <div>
@@ -77,33 +66,32 @@ export default function DetailPlatformPage() {
         <div className="py-10 text-center text-xs text-ink-3">Memuat data platform…</div>
       ) : (
         (() => {
-          const scopeName = platform === "all" ? "Semua Platform" : data.PLATFORMS[platform].name;
-          const kpiEntries: KpiEntry[] =
-            platform === "all"
-              ? [...data.KPI_ROW_1, ...data.KPI_ROW_2]
-              : Object.entries(data.PLATFORMS[platform].metrics).map(([label, m]) => ({ label, ...m }));
-          const roasEntry = kpiEntries.find((e) => e.label.includes("ROAS"));
-          const spendEntry = kpiEntries.find((e) => e.label.includes("Spend"));
-          const closingEntry = kpiEntries.find((e) => e.label.includes("Closing"));
-          const trendData = platform === "all" ? mergedTrend : data.PLATFORM_TREND[platform];
-          const trendColor = platform === "all" ? ALL_PLATFORM_COLOR : PLATFORM_CHART_COLOR[platform];
+          const activePlatform = data.PLATFORMS[platform];
+          const kpiEntries: KpiEntry[] = Object.entries(activePlatform.metrics).map(([label, m]) => ({
+            label,
+            ...m,
+          }));
           const period = rangeLabel(range.preset);
           const reportData: ExportReportData = {
-            scope: scopeName,
-            roas: `${roasEntry?.value ?? "-"} ROAS`,
-            spend: spendEntry?.value ?? "-",
-            closing: closingEntry?.value ?? "-",
-            note: `Performa ${scopeName} ${period} terakhir — cek tab Campaign untuk breakdown per campaign.`,
+            scope: activePlatform.name,
+            roas: `${activePlatform.metrics.ROAS.value} ROAS`,
+            spend: activePlatform.metrics.Spend.value,
+            closing: activePlatform.metrics.Closing.value,
+            note: `Performa ${activePlatform.name} ${period} terakhir — cek tab Campaign untuk breakdown per campaign.`,
             period,
           };
           return (
             <>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5">
-                <h2 className="text-[17px] font-bold">{scopeName}</h2>
+                <h2 className="text-[17px] font-bold">{activePlatform.name}</h2>
                 <CopyAsReportButton data={reportData} />
               </div>
               <PlatformKpiGrid entries={kpiEntries} />
-              <PlatformTrendChart data={trendData} color={trendColor} label={scopeName} />
+              <PlatformTrendChart
+                data={data.PLATFORM_TREND[platform]}
+                color={PLATFORM_CHART_COLOR[platform]}
+                label={activePlatform.name}
+              />
               <PlatformCampaignTable platformKey={platform} campaigns={data.CAMPAIGNS} />
             </>
           );

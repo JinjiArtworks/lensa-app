@@ -5,7 +5,7 @@ export type ToastVariant = "success" | "error";
 // Structurally identical to detail-platform's DetailPlatformView — kept as a
 // plain literal union here (not imported) so this cross-cutting store stays
 // free of feature-folder imports.
-export type DetailPlatformView = "all" | "meta" | "tiktok";
+export type DetailPlatformView = "meta" | "tiktok";
 
 interface UiState {
   activeBusinessId: string | null;

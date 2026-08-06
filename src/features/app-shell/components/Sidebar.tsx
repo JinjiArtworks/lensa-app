@@ -145,17 +145,14 @@ function DetailPlatformNavItem({
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
 
   function isViewLocked(key: DetailPlatformView): boolean {
-    if (key === "all") return isFree;
     return isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit);
   }
 
-  // Stored view can go stale (e.g. plan downgraded, or platform slot swapped
-  // from elsewhere) — snap back to a connected platform once that's locked.
+  // Stored view can go stale (e.g. platform slot swapped from elsewhere) —
+  // snap back to a connected platform once that's locked.
   useEffect(() => {
     if (connectedPlatforms.length === 0) return;
-    const locked =
-      detailPlatformView === "all" ? isFree : isFree && !connectedPlatforms.includes(detailPlatformView);
-    if (!locked) return;
+    if (!isFree || connectedPlatforms.includes(detailPlatformView)) return;
     setDetailPlatformView((connectedPlatforms[0] as PlatformKey) ?? "meta");
   }, [connectedPlatforms, isFree, detailPlatformView, setDetailPlatformView]);
 
@@ -169,7 +166,7 @@ function DetailPlatformNavItem({
   }
 
   function confirmSwitch() {
-    if (!pendingSwitch || pendingSwitch === "all") return;
+    if (!pendingSwitch) return;
     const platformName = PLATFORM_LABELS[pendingSwitch].name;
     switchPlatform.mutate(pendingSwitch, {
       onSuccess: () => {
@@ -186,7 +183,7 @@ function DetailPlatformNavItem({
     .map((key) => PLATFORM_LABELS[key as PlatformKey]?.name)
     .filter(Boolean)
     .join(", ");
-  const pendingPlatformName = pendingSwitch && pendingSwitch !== "all" ? PLATFORM_LABELS[pendingSwitch].name : "";
+  const pendingPlatformName = pendingSwitch ? PLATFORM_LABELS[pendingSwitch].name : "";
 
   return (
     <div>
@@ -228,22 +225,15 @@ function DetailPlatformNavItem({
       <ProUpgradeDialog
         open={pendingSwitch !== null}
         onOpenChange={(o) => !o && setPendingSwitch(null)}
-        title={pendingSwitch === "all" ? "Buka Semua Platform?" : `Ganti ke ${pendingPlatformName}?`}
+        title={`Ganti ke ${pendingPlatformName}?`}
         description={
-          pendingSwitch === "all" ? (
-            <>
-              Lihat performa gabungan semua platform sekaligus adalah fitur Pro. Plan Free cuma bisa lihat 1 platform
-              aktif — upgrade buat buka tampilan ini.
-            </>
-          ) : (
-            <>
-              Plan Free cuma bisa lihat 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan
-              diganti dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
-            </>
-          )
+          <>
+            Plan Free cuma bisa lihat 1 platform aktif. Lanjut berarti <b>{currentPlatformNames}</b> diputus dan
+            diganti dengan <b>{pendingPlatformName}</b>. Kalau mau pakai keduanya sekaligus, upgrade ke Pro.
+          </>
         }
         swapAction={
-          pendingSwitch && pendingSwitch !== "all"
+          pendingSwitch
             ? {
                 label: switchPlatform.isPending ? "Mengganti…" : `Ganti ke ${pendingPlatformName}`,
                 pending: switchPlatform.isPending,
