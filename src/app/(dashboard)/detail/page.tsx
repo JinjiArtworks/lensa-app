@@ -11,6 +11,8 @@ import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-
 import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
+import { PlatformPeriodCompareChart } from "@/features/detail-platform/components/PlatformPeriodCompareChart";
+import { PlatformClickShareChart } from "@/features/detail-platform/components/PlatformClickShareChart";
 
 // Lazy: both read Firestore directly (plan gating) — keeps the Firestore SDK
 // out of this route's initial JS (same reasoning as Overview's CoverageBanner).
@@ -78,6 +80,14 @@ export default function DetailPlatformPage() {
                 color={PLATFORM_CHART_COLOR[platform]}
                 label={activePlatform.name}
               />
+              <div className="mt-4 grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
+                <PlatformPeriodCompareChart
+                  current={data.PLATFORM_RAW[platform].current}
+                  previous={data.PLATFORM_RAW[platform].previous}
+                  color={PLATFORM_CHART_COLOR[platform]}
+                />
+                <PlatformClickShareChart current={data.PLATFORM_RAW[platform].current} color={PLATFORM_CHART_COLOR[platform]} />
+              </div>
             </>
           );
         })()

@@ -85,6 +85,10 @@ export interface OverviewData {
   ACTUALS: { roas: number; closing: number };
   TREND_DATA: Record<7 | 30, { day: string; current: number; previous: number }[]>;
   PLATFORM_TREND: Record<PlatformKey, { day: string; spend: number; closing: number }[]>;
+  // Raw current/previous per platform — Detail Platform's own charts (period
+  // compare, click-share donut) need actual numbers, not the pre-formatted
+  // `metrics` strings meant for display.
+  PLATFORM_RAW: Record<PlatformKey, { current: PlatformRaw; previous: PlatformRaw }>;
 }
 
 // Derives every Overview/Detail-Platform-facing number from the raw
@@ -175,6 +179,7 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
     ACTUALS: { roas: combinedCurrent.roas, closing: combinedCurrent.closing },
     TREND_DATA: raw.trend,
     PLATFORM_TREND: raw.platformTrend,
+    PLATFORM_RAW: { meta: raw.meta, tiktok: raw.tiktok },
   };
 }
 
