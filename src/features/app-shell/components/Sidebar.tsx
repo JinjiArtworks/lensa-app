@@ -131,7 +131,9 @@ function NavLink({
 // Detail Platform's nav item expands into a submenu (Semua Platform / Meta
 // Ads / TikTok Ads) instead of the page owning an in-page switcher — this is
 // the sidebar's own "current view" state, shared with the /detail page via
-// useUiStore.detailPlatformView. Submenu auto-expands while /detail is active.
+// useUiStore.detailPlatformView. On desktop the submenu auto-expands while
+// /detail is active; on the collapsed-rail mobile layout it's a toggleable
+// flyout instead (no room to show it inline without covering other UI).
 function DetailPlatformNavItem({
   item,
   active,
@@ -147,7 +149,16 @@ function DetailPlatformNavItem({
   const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const [pendingUpgrade, setPendingUpgrade] = useState<DetailPlatformView | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const platformLimit = isFree ? 1 : PLATFORM_KEYS.length;
+
+  // Only relevant on the collapsed-rail mobile layout — the desktop submenu
+  // stays purely `active`-driven (auto-shown, no toggle). Reset whenever this
+  // item stops being active so a later return to /detail starts closed
+  // instead of reopening on top of whatever page-level UI is now there.
+  useEffect(() => {
+    if (!active) setMobileMenuOpen(false);
+  }, [active]);
 
   function isViewLocked(key: DetailPlatformView): boolean {
     return isPlatformLocked(connectedPlatforms.includes(key), connectedPlatforms.length, platformLimit);
@@ -167,6 +178,7 @@ function DetailPlatformNavItem({
       return;
     }
     setDetailPlatformView(key);
+    setMobileMenuOpen(false);
     router.push("/detail");
   }
 
@@ -176,11 +188,44 @@ function DetailPlatformNavItem({
     .join(", ");
   const pendingPlatformName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
 
+  const platformOptions = DETAIL_VIEW_ORDER.map((key) => {
+    const isActive = detailPlatformView === key;
+    const locked = isViewLocked(key);
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => selectView(key)}
+        title={locked ? "Upgrade ke Pro untuk buka multi platform" : undefined}
+        className={`flex items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold ${
+          isActive ? "bg-accent-bg text-accent-text" : locked ? "text-ink-3" : "text-ink-2 hover:bg-bg"
+        }`}
+      >
+        {DETAIL_VIEW_LABELS[key]}
+        {isActive ? (
+          <Check className="size-3.5 shrink-0" />
+        ) : locked ? (
+          <ProLockBadge tooltip="Upgrade ke Pro untuk buka multi platform" />
+        ) : null}
+      </button>
+    );
+  });
+
   return (
     <div className="relative">
       <Link
         href={item.href}
         title={item.label}
+        onClick={(e) => {
+          // Already on /detail — a normal Link click here is a same-route
+          // no-op navigation, so hijack it to toggle the mobile flyout
+          // instead (desktop's submenu doesn't use this state at all, so
+          // toggling it has no effect there).
+          if (active) {
+            e.preventDefault();
+            setMobileMenuOpen((o) => !o);
+          }
+        }}
         className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-[13px] font-medium max-[760px]:justify-center max-[760px]:px-0 ${
           active ? "bg-accent text-ink" : "text-ink-2 hover:bg-bg"
         }`}
@@ -194,34 +239,18 @@ function DetailPlatformNavItem({
         )}
       </Link>
       {active && (
-        // Collapsed-rail sidebar (<=760px) has no room for inline text, so the
-        // submenu flies out to the right of the icon instead of hiding
-        // outright — hiding it left mobile with no way to switch platform at
-        // all (the page itself has no in-page switcher, see detail/page.tsx).
-        <div className="ml-2 mt-2 flex flex-col gap-1 border-l border-line pl-2.5 max-[760px]:absolute max-[760px]:left-full max-[760px]:top-0 max-[760px]:z-50 max-[760px]:ml-1.5 max-[760px]:mt-0 max-[760px]:w-44 max-[760px]:rounded-xl max-[760px]:border max-[760px]:bg-card max-[760px]:p-1.5 max-[760px]:pl-1.5 max-[760px]:shadow-lg">
-          {DETAIL_VIEW_ORDER.map((key) => {
-            const isActive = detailPlatformView === key;
-            const locked = isViewLocked(key);
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => selectView(key)}
-                title={locked ? "Upgrade ke Pro untuk buka multi platform" : undefined}
-                className={`flex items-center justify-between gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-[12px] font-semibold ${
-                  isActive ? "bg-accent-bg text-accent-text" : locked ? "text-ink-3" : "text-ink-2 hover:bg-bg"
-                }`}
-              >
-                {DETAIL_VIEW_LABELS[key]}
-                {isActive ? (
-                  <Check className="size-3.5 shrink-0" />
-                ) : locked ? (
-                  <ProLockBadge tooltip="Upgrade ke Pro untuk buka multi platform" />
-                ) : null}
-              </button>
-            );
-          })}
+        <div className="ml-2 mt-2 hidden flex-col gap-1 border-l border-line pl-2.5 min-[761px]:flex">
+          {platformOptions}
         </div>
+      )}
+      {active && mobileMenuOpen && (
+        <>
+          {/* Tap-outside-to-close backdrop — mobile flyout only, desktop never renders this. */}
+          <div className="fixed inset-0 z-40 min-[761px]:hidden" onClick={() => setMobileMenuOpen(false)} />
+          <div className="absolute left-full top-0 z-50 ml-1.5 flex w-44 flex-col gap-1 rounded-xl border border-line bg-card p-1.5 shadow-lg min-[761px]:hidden">
+            {platformOptions}
+          </div>
+        </>
       )}
       <ProUpgradeDialog
         open={pendingUpgrade !== null}
