@@ -38,6 +38,12 @@ Format tiap entry: **Keputusan** → **Kenapa** → **Trade-off** → *Sumber* (
 **Trade-off:** Building block-nya (union metrik, highlight pemenang) masih ada di histori kalau mau di-rebuild nanti.
 *Sumber:* `business-plan.md` §9.
 
+### 1.6 Dashboard nge-gate DATA per binding status, bukan AKSES halamannya — beda sama keputusan sesi keempatbelas
+**Keputusan (sesi keenambelas):** Overview/Detail Platform/AI Insight sekarang nge-filter angka berdasar `connectedPlatforms` beneran (platform yang belum di-bind = 0, bukan angka mock seolah-olah connect), dan bisnis yang baru dibikin di-redirect ke `/binding` dulu (bisa di-skip via Sidebar).
+**Kenapa penting dibedain dari sesi keempatbelas:** entry "restrukturisasi besar: Onboarding & Connect Platform dipisah" (`PROGRESS.md`) secara eksplisit **menghapus** gating platform-connect ke **akses** dashboard, karena user ngerasa itu bikin binding "kerasa formalitas sign-up doang, bukan aksi yang disengaja". Kalau dibaca sekilas, fix sesi ini kelihatan kayak reverse keputusan itu — padahal beda level: sesi keempatbelas soal **akses** (bisa buka halaman apa nggak), sesi keenambelas soal **kejujuran data** (apa yang ditampilin di halaman yang emang udah bisa diakses). User tetap bisa buka `/overview`/`/detail`/`/insight` kapan aja tanpa binding apapun — cuma sekarang ketauan jujur 0/kosong, bukan kepalsuan data 2 platform ke-combine padahal belum ada yang di-bind (root cause: `/api/platform-metrics` nggak pernah baca `connectedPlatforms` sama sekali — lihat `10-data-flow-reference.md` Domain B, yang juga perlu dibaca ulang dengan pemahaman baru ini).
+**Trade-off:** Redirect ke `/binding` abis bikin bisnis baru nambah 1 klik sebelum sampe Overview (dibanding auto-`/overview` sebelumnya) — diterima karena cuma nudge yang bisa di-skip, bukan gate keras kayak yang dihapus sesi keempatbelas.
+*Sumber:* `PROGRESS.md` entry sesi keempatbelas "restrukturisasi besar" & entry sesi keenambelas, `10-data-flow-reference.md` Domain B.
+
 ---
 
 ## 2. Arsitektur & Stack

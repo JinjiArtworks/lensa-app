@@ -91,18 +91,33 @@ export interface OverviewData {
   PLATFORM_RAW: Record<PlatformKey, { current: PlatformRaw; previous: PlatformRaw }>;
 }
 
+// A platform the business hasn't bound yet contributes nothing — no real
+// spend/closing/etc. exists for it, so every field reads 0 rather than the
+// seeded mock number `/api/platform-metrics` still generates for it under
+// the hood (that generator has no concept of binding, see the route handler).
+const ZERO_RAW: PlatformRaw = { spend: 0, closing: 0, roas: 0, ctr: 0, impresi: 0, klik: 0, campaignAktif: 0 };
+
 // Derives every Overview/Detail-Platform-facing number from the raw
 // current+previous metrics fetched per business — nothing here is a
 // module-level constant anymore (see git history before this refactor for
-// the old hardcoded PLATFORM_RAW/PLATFORMS/KPI_ROW_1/etc.).
-export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData {
+// the old hardcoded PLATFORM_RAW/PLATFORMS/KPI_ROW_1/etc.). `connectedPlatforms`
+// zeroes out any platform not yet bound, so newly-created businesses (nothing
+// bound) show an honest 0 instead of the seeded mock number.
+export function derivePlatformsData(raw: PlatformMetricsResponse, connectedPlatforms: string[]): OverviewData {
+  const effective = (key: PlatformKey, side: "current" | "previous"): PlatformRaw =>
+    connectedPlatforms.includes(key) ? raw[key][side] : ZERO_RAW;
+  const metaCurrent = effective("meta", "current");
+  const metaPrevious = effective("meta", "previous");
+  const tiktokCurrent = effective("tiktok", "current");
+  const tiktokPrevious = effective("tiktok", "previous");
+
   const PLATFORMS: Record<PlatformKey, PlatformData> = {
-    meta: { ...PLATFORM_LABELS.meta, metrics: buildMetrics(raw.meta.current, raw.meta.previous) },
-    tiktok: { ...PLATFORM_LABELS.tiktok, metrics: buildMetrics(raw.tiktok.current, raw.tiktok.previous) },
+    meta: { ...PLATFORM_LABELS.meta, metrics: buildMetrics(metaCurrent, metaPrevious) },
+    tiktok: { ...PLATFORM_LABELS.tiktok, metrics: buildMetrics(tiktokCurrent, tiktokPrevious) },
   };
 
-  const combinedCurrent = combineRaw(raw.meta.current, raw.tiktok.current);
-  const combinedPrevious = combineRaw(raw.meta.previous, raw.tiktok.previous);
+  const combinedCurrent = combineRaw(metaCurrent, tiktokCurrent);
+  const combinedPrevious = combineRaw(metaPrevious, tiktokPrevious);
   const cpaCurrent = cpaFromRaw(combinedCurrent);
   const cpaPrevious = cpaFromRaw(combinedPrevious);
 
@@ -150,25 +165,36 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
 
   const CHANNEL_CHART_DATA = {
     spend: [
-      { name: "Meta", value: raw.meta.current.spend * 1000 },
-      { name: "TikTok", value: raw.tiktok.current.spend * 1000 },
+      { name: "Meta", value: metaCurrent.spend * 1000 },
+      { name: "TikTok", value: tiktokCurrent.spend * 1000 },
     ],
     closing: [
-      { name: "Meta", value: raw.meta.current.closing },
-      { name: "TikTok", value: raw.tiktok.current.closing },
+      { name: "Meta", value: metaCurrent.closing },
+      { name: "TikTok", value: tiktokCurrent.closing },
     ],
   };
 
   const EFFICIENCY_CHART_DATA = {
     ctr: [
-      { name: "Meta", value: raw.meta.current.ctr },
-      { name: "TikTok", value: raw.tiktok.current.ctr },
+      { name: "Meta", value: metaCurrent.ctr },
+      { name: "TikTok", value: tiktokCurrent.ctr },
     ],
     cpa: [
-      { name: "Meta", value: cpaFromRaw(raw.meta.current) },
-      { name: "TikTok", value: cpaFromRaw(raw.tiktok.current) },
+      { name: "Meta", value: cpaFromRaw(metaCurrent) },
+      { name: "TikTok", value: cpaFromRaw(tiktokCurrent) },
     ],
   };
+
+  // The overall trend series (unlike PLATFORM_RAW) isn't derived per-platform
+  // — it's its own seeded series — so it can't be partially zeroed per
+  // platform. With nothing bound at all there's nothing to trend, though.
+  const TREND_DATA =
+    connectedPlatforms.length === 0
+      ? {
+          7: raw.trend[7].map((d) => ({ ...d, current: 0, previous: 0 })),
+          30: raw.trend[30].map((d) => ({ ...d, current: 0, previous: 0 })),
+        }
+      : raw.trend;
 
   return {
     PLATFORMS,
@@ -177,7 +203,7 @@ export function derivePlatformsData(raw: PlatformMetricsResponse): OverviewData 
     CHANNEL_CHART_DATA,
     EFFICIENCY_CHART_DATA,
     ACTUALS: { roas: combinedCurrent.roas, closing: combinedCurrent.closing },
-    TREND_DATA: raw.trend,
+    TREND_DATA,
     PLATFORM_TREND: raw.platformTrend,
     PLATFORM_RAW: { meta: raw.meta, tiktok: raw.tiktok },
   };

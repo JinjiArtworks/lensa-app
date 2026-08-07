@@ -9,24 +9,27 @@ export interface PlatformRaw {
 }
 
 // CPA is never an independent input — it's always spend divided by closing,
-// for a single platform or for the combined total alike.
+// for a single platform or for the combined total alike. `closing` is 0 for
+// a platform with no binding yet (zeroed out upstream) — guard instead of
+// dividing into NaN/Infinity.
 export function cpaFromRaw(raw: PlatformRaw): number {
-  return (raw.spend * 1_000_000) / raw.closing;
+  return raw.closing === 0 ? 0 : (raw.spend * 1_000_000) / raw.closing;
 }
 
 // Combining two platforms' metrics isn't averaging: ROAS must be
 // spend-weighted (a platform that spent more should move the combined
 // number more), and CTR/CPA must be recomputed from the summed totals
 // (klik/impresi, spend/closing) rather than averaged from each platform's
-// own already-derived rate.
+// own already-derived rate. Both denominators can be 0 when a platform
+// isn't bound yet (zeroed raw) — guard instead of dividing into NaN.
 export function combineRaw(a: PlatformRaw, b: PlatformRaw): PlatformRaw {
   const spend = a.spend + b.spend;
   const closing = a.closing + b.closing;
   const impresi = a.impresi + b.impresi;
   const klik = a.klik + b.klik;
   const campaignAktif = a.campaignAktif + b.campaignAktif;
-  const roas = (a.spend * a.roas + b.spend * b.roas) / spend;
-  const ctr = (klik / (impresi * 1000)) * 100;
+  const roas = spend === 0 ? 0 : (a.spend * a.roas + b.spend * b.roas) / spend;
+  const ctr = impresi === 0 ? 0 : (klik / (impresi * 1000)) * 100;
   return { spend, closing, roas, ctr, impresi, klik, campaignAktif };
 }
 

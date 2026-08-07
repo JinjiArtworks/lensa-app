@@ -9,6 +9,8 @@ import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
 import { PLATFORM_CHART_COLOR } from "@/features/overview-dashboard/mock-data";
+import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
+import { BindingRequiredNotice } from "@/components/shared/BindingRequiredNotice";
 import { TargetTracker } from "@/features/overview-dashboard/components/TargetTracker";
 import { PlatformKpiGrid, type KpiEntry } from "@/features/detail-platform/components/PlatformKpiGrid";
 import { PlatformTrendChart } from "@/features/detail-platform/components/PlatformTrendChart";
@@ -29,7 +31,9 @@ export default function DetailPlatformPage() {
   const [range, setRange] = useState<FilterValue>(initialFilterValue("year"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const queryClient = useQueryClient();
-  const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
+  const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey, connectedPlatforms);
+  const isPlatformBound = connectedPlatforms.includes(platform);
 
   return (
     <div>
@@ -62,6 +66,17 @@ export default function DetailPlatformPage() {
       ) : (
         (() => {
           const activePlatform = data.PLATFORMS[platform];
+          if (!isPlatformBound) {
+            return (
+              <>
+                <h2 className="mb-3 text-[17px] font-bold">{activePlatform.name}</h2>
+                <BindingRequiredNotice
+                  title={`Kamu belum binding ${activePlatform.name}`}
+                  description="Hubungkan platform ini dulu di menu Binding biar data performanya bisa ditampilkan di sini."
+                />
+              </>
+            );
+          }
           const kpiEntries: KpiEntry[] = Object.entries(activePlatform.metrics).map(([label, m]) => ({
             label,
             ...m,

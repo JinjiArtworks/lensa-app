@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { useUiStore } from "@/stores/ui";
 import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
@@ -24,7 +25,10 @@ export function CoverageBanner() {
         {missing.length > 0 ? (
           <>
             {" "}
-            — <b>{missing.join(", ")}</b> belum terhubung, jadi datanya belum ikut kehitung.
+            — <b>{missing.join(", ")}</b> belum terhubung, jadi datanya belum ikut kehitung.{" "}
+            <Link href="/binding" className="font-bold underline">
+              Binding sekarang
+            </Link>
           </>
         ) : (
           " — sudah mencakup semua data platformmu."

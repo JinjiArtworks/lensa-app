@@ -15,6 +15,7 @@ import { TrendChart } from "@/features/overview-dashboard/components/TrendChart"
 import { PlatformShareChart } from "@/features/overview-dashboard/components/PlatformShareChart";
 import { PlatformEfficiencyChart } from "@/features/overview-dashboard/components/PlatformEfficiencyChart";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
+import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
 
 // Lazy: all 3 read Firestore directly (real connectedPlatforms/plan, not the
 // mocked metrics API) — keeping them out of the main chunk avoids pulling the
@@ -34,7 +35,8 @@ export default function OverviewPage() {
   const [range, setRange] = useState<FilterValue>(initialFilterValue("year"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const queryClient = useQueryClient();
-  const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
+  const { data, isLoading, isError } = useOverviewData(activeBusinessId, rangeKey, connectedPlatforms);
 
   return (
     <div>

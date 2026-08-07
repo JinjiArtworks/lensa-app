@@ -17,10 +17,19 @@ async function fetchPlatformMetrics(businessId: string, range: string): Promise<
 // Every Overview/Detail-Platform-facing number, scoped to the active
 // business AND the active date-range filter — same pair always returns the
 // same numbers, switching either one visibly changes the dashboard.
-export function useOverviewData(businessId: string | undefined, range: string = "year") {
-  return useQuery<OverviewData>({
+// `connectedPlatforms` isn't part of the query key — the raw fetch doesn't
+// depend on it, only the derived shape does, so it's applied via `select`.
+// Connecting a platform on the Binding page re-derives instantly once
+// `useConnectedPlatforms` refetches, no extra network round-trip needed.
+export function useOverviewData(
+  businessId: string | undefined,
+  range: string = "year",
+  connectedPlatforms: string[] = []
+) {
+  return useQuery<PlatformMetricsResponse, Error, OverviewData>({
     queryKey: ["platform-metrics", businessId, range],
-    queryFn: async () => derivePlatformsData(await fetchPlatformMetrics(businessId as string, range)),
+    queryFn: () => fetchPlatformMetrics(businessId as string, range),
+    select: (raw) => derivePlatformsData(raw, connectedPlatforms),
     enabled: Boolean(businessId),
   });
 }

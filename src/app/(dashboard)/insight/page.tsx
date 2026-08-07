@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUiStore } from "@/stores/ui";
 import { useSyncStore } from "@/stores/sync";
 import { useOverviewData } from "@/features/overview-dashboard/api/use-overview-data";
+import { useConnectedPlatforms } from "@/features/binding/api/use-connect-platform";
+import { BindingRequiredNotice } from "@/components/shared/BindingRequiredNotice";
 import { InsightSummaryCard } from "@/features/insight/components/InsightSummaryCard";
 import { PriorityPanel } from "@/features/insight/components/PriorityPanel";
 import { BenchmarkPanel } from "@/features/insight/components/BenchmarkPanel";
@@ -36,7 +38,9 @@ export default function InsightPage() {
   const { isFree } = useProGate(activeBusinessId);
   const [range, setRange] = useState<FilterValue>(initialFilterValue("week"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
-  const { data: overviewData } = useOverviewData(activeBusinessId, rangeKey);
+  const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
+  const { data: overviewData } = useOverviewData(activeBusinessId, rangeKey, connectedPlatforms);
+  const hasBinding = connectedPlatforms.length > 0;
   const [category, setCategory] = useState<"all" | InsightItem["category"]>("all");
   const [platform, setPlatform] = useState<"all" | "meta" | "tiktok">("all");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -127,33 +131,42 @@ export default function InsightPage() {
         </div>
       )}
 
-      <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} lastSyncedAt={lastSyncedAt} />
+      {!hasBinding ? (
+        <BindingRequiredNotice
+          title="Kamu belum binding platform apapun"
+          description="AI Insight butuh data dari platform iklan yang terhubung buat dianalisis. Hubungkan Meta Ads atau TikTok Ads dulu di menu Binding."
+        />
+      ) : (
+        <>
+          <InsightSummaryCard stats={stats} compareLine={getCompareLine(range.preset)} lastSyncedAt={lastSyncedAt} />
 
-      <div className="mb-5">
-        <PriorityPanel items={priorityItems} />
-      </div>
-
-      <Tabs defaultValue="insights">
-        <TabsList>
-          <TabsTrigger value="insights">Semua Insight</TabsTrigger>
-          <TabsTrigger value="benchmark">Benchmark &amp; Budget</TabsTrigger>
-        </TabsList>
-        <TabsContent value="insights">
-          <InsightToolbar
-            platform={platform}
-            onPlatformChange={setPlatform}
-            category={category}
-            onCategoryChange={setCategory}
-          />
-          <InsightGrid items={visibleItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
-        </TabsContent>
-        <TabsContent value="benchmark">
-          <div className="grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
-            <BenchmarkPanel category={INDUSTRY_BENCHMARK_CATEGORY} metrics={INDUSTRY_BENCHMARK} />
-            <BudgetRecommendationPanel recommendations={BUDGET_REC} />
+          <div className="mb-5">
+            <PriorityPanel items={priorityItems} />
           </div>
-        </TabsContent>
-      </Tabs>
+
+          <Tabs defaultValue="insights">
+            <TabsList>
+              <TabsTrigger value="insights">Semua Insight</TabsTrigger>
+              <TabsTrigger value="benchmark">Benchmark &amp; Budget</TabsTrigger>
+            </TabsList>
+            <TabsContent value="insights">
+              <InsightToolbar
+                platform={platform}
+                onPlatformChange={setPlatform}
+                category={category}
+                onCategoryChange={setCategory}
+              />
+              <InsightGrid items={visibleItems} isFree={isFree} onUpgradeClick={() => setUpgradeOpen(true)} />
+            </TabsContent>
+            <TabsContent value="benchmark">
+              <div className="grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
+                <BenchmarkPanel category={INDUSTRY_BENCHMARK_CATEGORY} metrics={INDUSTRY_BENCHMARK} />
+                <BudgetRecommendationPanel recommendations={BUDGET_REC} />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
 
       <ProUpgradeDialog
         open={upgradeOpen}

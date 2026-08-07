@@ -37,6 +37,15 @@ export default function OnboardingPage() {
     router.push("/overview");
   }
 
+  // A freshly-created business has nothing bound yet — send the user
+  // straight to Binding instead of an empty Overview, so connecting a
+  // platform reads as the deliberate next step it is, not a dashboard
+  // that's mysteriously empty.
+  function goToBinding(businessId: string) {
+    setActiveBusinessId(businessId);
+    router.push("/binding");
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-5 py-12 text-center">
       <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent text-base font-extrabold text-ink">
@@ -110,7 +119,7 @@ export default function OnboardingPage() {
         </>
       )}
 
-      <CreateBusinessModal open={modalOpen} onOpenChange={setModalOpen} ownerId={authUser?.uid} onCreated={goToDashboard} />
+      <CreateBusinessModal open={modalOpen} onOpenChange={setModalOpen} ownerId={authUser?.uid} onCreated={goToBinding} />
     </div>
   );
 }
