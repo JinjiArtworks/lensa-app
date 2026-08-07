@@ -89,7 +89,8 @@ export function PackageComparison({
         </div>
       </div>
       <div className="mt-4 border-t border-line-2 pt-3 text-center text-[10.5px] text-ink-3">
-        Ganti plan di sini langsung nyimpen ke bisnis aktif kamu — simulasi, tanpa payment gateway beneran.
+        Plan ini berlaku buat seluruh akunmu (disimpen di bisnis pertama kamu), bukan cuma bisnis yang lagi aktif —
+        simulasi, tanpa payment gateway beneran.
       </div>
     </div>
   );
