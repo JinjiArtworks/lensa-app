@@ -61,7 +61,7 @@ export function PlanSummary({
           <p className="mb-3.5 text-[11.5px] text-ink-3">
             Perpanjang otomatis <b className="text-ink-2">1 September 2026</b> · ditagih bulanan
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 max-[560px]:flex-col">
             <Button
               variant="ghost"
               className="flex-1 justify-center"
