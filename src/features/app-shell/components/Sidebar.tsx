@@ -177,7 +177,7 @@ function DetailPlatformNavItem({
   const pendingPlatformName = pendingUpgrade ? PLATFORM_LABELS[pendingUpgrade].name : "";
 
   return (
-    <div>
+    <div className="relative">
       <Link
         href={item.href}
         title={item.label}
@@ -194,7 +194,11 @@ function DetailPlatformNavItem({
         )}
       </Link>
       {active && (
-        <div className="ml-2 mt-2 flex flex-col gap-1 border-l border-line pl-2.5 max-[760px]:hidden">
+        // Collapsed-rail sidebar (<=760px) has no room for inline text, so the
+        // submenu flies out to the right of the icon instead of hiding
+        // outright — hiding it left mobile with no way to switch platform at
+        // all (the page itself has no in-page switcher, see detail/page.tsx).
+        <div className="ml-2 mt-2 flex flex-col gap-1 border-l border-line pl-2.5 max-[760px]:absolute max-[760px]:left-full max-[760px]:top-0 max-[760px]:z-50 max-[760px]:ml-1.5 max-[760px]:mt-0 max-[760px]:w-44 max-[760px]:rounded-xl max-[760px]:border max-[760px]:bg-card max-[760px]:p-1.5 max-[760px]:pl-1.5 max-[760px]:shadow-lg">
           {DETAIL_VIEW_ORDER.map((key) => {
             const isActive = detailPlatformView === key;
             const locked = isViewLocked(key);

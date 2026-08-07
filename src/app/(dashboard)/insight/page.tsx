@@ -81,6 +81,13 @@ export default function InsightPage() {
     () => filterInsights(periodItems, category, platform),
     [periodItems, category, platform]
   );
+  // BUDGET_REC has a fixed 2-item catalog (Meta+TikTok) same as every other
+  // static mock list in this feature — it never knew about binding status,
+  // so an unbound platform showed a budget move for spend that doesn't exist.
+  const budgetRecommendations = useMemo(
+    () => BUDGET_REC.filter((rec) => connectedPlatforms.includes(rec.key)),
+    [connectedPlatforms]
+  );
 
   return (
     <div>
@@ -161,7 +168,7 @@ export default function InsightPage() {
             <TabsContent value="benchmark">
               <div className="grid grid-cols-2 gap-3.5 max-[980px]:grid-cols-1">
                 <BenchmarkPanel category={INDUSTRY_BENCHMARK_CATEGORY} metrics={INDUSTRY_BENCHMARK} />
-                <BudgetRecommendationPanel recommendations={BUDGET_REC} />
+                <BudgetRecommendationPanel recommendations={budgetRecommendations} />
               </div>
             </TabsContent>
           </Tabs>
