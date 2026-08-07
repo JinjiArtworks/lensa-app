@@ -44,6 +44,12 @@ Format tiap entry: **Keputusan** → **Kenapa** → **Trade-off** → *Sumber* (
 **Trade-off:** Redirect ke `/binding` abis bikin bisnis baru nambah 1 klik sebelum sampe Overview (dibanding auto-`/overview` sebelumnya) — diterima karena cuma nudge yang bisa di-skip, bukan gate keras kayak yang dihapus sesi keempatbelas.
 *Sumber:* `PROGRESS.md` entry sesi keempatbelas "restrukturisasi besar" & entry sesi keenambelas, `10-data-flow-reference.md` Domain B.
 
+### 1.7 "Plan akun" = plan bisnis PERTAMA yang didaftarin, bukan plan bisnis manapun yang lagi aktif
+**Keputusan (sesi ketujuhbelas):** `BusinessSwitcher` sekarang nentuin apakah akun ini Free/Pro dari plan bisnis dengan `createdAt` paling awal ("bisnis primer") — dipakai buat 2 hal: (1) boleh-tidaknya nambah bisnis baru, (2) bisnis mana aja yang boleh di-switch/diakses (kalau Free, cuma bisnis primer).
+**Kenapa:** `plan` disimpan per-dokumen bisnis di Firestore, tapi aturan bisnisnya ("Free = 1 bisnis, Pro = multi-bisnis", `feature-specs.md`) itu konsepnya account-wide, bukan per-dokumen. Gate lama baca plan dari bisnis yang **lagi aktif** — begitu bisnis ke-2 kebuat pas Pro terus akun di-downgrade (lewat Billing, yang cuma nulis ke `activeBusinessId` doang, bukan ke semua bisnis milik owner), bisnis ke-2 itu nggak pernah ke-lock balik karena nggak ada kode yang re-evaluasi aksesnya — ketauan sebagai bug dari laporan user.
+**Trade-off:** Ini nambah 1 concept baru ("bisnis primer", ditentuin dari urutan `createdAt`) tanpa migrasi schema (nggak ada field baru di Firestore) — murni derived di client dari data yang udah ada. Konsekuensinya: bisnis ke-2/dst yang dibuat pas Pro **tetap** punya `plan: "free"` di dokumennya sendiri (`useAddBusiness` nggak diubah, lihat gap terkait di `PROGRESS.md` "Yang Sengaja Belum Dikerjain") — jadi `useProGate` (Binding/Insight paywall/Detail Platform) yang baca plan per-bisnis-aktif itu sendiri **belum** direkonsiliasi ke konsep "bisnis primer" ini. Sengaja dibiarkan beda sesi ini biar nggak ngubah behavior fitur lain yang udah ke-test tanpa user review dulu.
+*Sumber:* `PROGRESS.md` entry sesi ketujuhbelas, `feature-specs.md` (baris "1 user account bisa punya lebih dari 1 bisnis").
+
 ---
 
 ## 2. Arsitektur & Stack
