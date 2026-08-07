@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/stores/ui";
+import { useAuthStore } from "@/stores/auth";
+import { useBusinesses } from "@/features/app-shell/api/use-businesses";
 import { PackageComparison } from "@/features/billing/components/PackageComparison";
 import { PlanSummary } from "@/features/billing/components/PlanSummary";
 import { PaymentGatewayModal } from "@/features/billing/components/PaymentGatewayModal";
@@ -17,9 +19,18 @@ function SectionLabel({ children }: { children: string }) {
 
 export default function BillingPage() {
   const showToast = useUiStore((s) => s.showToast);
-  const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
-  const { data: plan = "free" } = useBusinessPlan(activeBusinessId);
-  const updatePlan = useUpdateBusinessPlan(activeBusinessId);
+  const uid = useAuthStore((s) => s.user?.uid);
+  const { data: businesses = [] } = useBusinesses(uid);
+  // The account's plan lives on the PRIMARY business (first one ever
+  // registered, see BusinessSwitcher) — not whatever business happens to be
+  // active in the switcher. Reading/writing off `activeBusinessId` here let a
+  // downgrade performed while viewing a secondary business write to that
+  // business's own doc instead of the one BusinessSwitcher's access gate
+  // actually checks, so the account never looked downgraded and the extra
+  // business stayed fully reachable.
+  const primaryBusinessId = businesses[0]?.id;
+  const { data: plan = "free" } = useBusinessPlan(primaryBusinessId);
+  const updatePlan = useUpdateBusinessPlan(primaryBusinessId);
   const [paymentOpen, setPaymentOpen] = useState(false);
 
   function handleSelectPlan(next: BusinessPlan) {
@@ -45,7 +56,7 @@ export default function BillingPage() {
 
       <SectionLabel>Ringkasan</SectionLabel>
       <div className="mb-5">
-        <PlanSummary businessId={activeBusinessId} plan={plan} onOpenPayment={() => setPaymentOpen(true)} />
+        <PlanSummary businessId={primaryBusinessId} plan={plan} onOpenPayment={() => setPaymentOpen(true)} />
       </div>
 
       <div id="paket-tersedia">
