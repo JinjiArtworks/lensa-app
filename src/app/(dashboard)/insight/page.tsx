@@ -83,7 +83,7 @@ export default function InsightPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
         <div>
           <h1 className="text-[23px] font-extrabold tracking-tight">AI Insight</h1>
-          <div className="mt-0.5 text-xs text-ink-3">Rekomendasi &amp; anomali otomatis · data terakhir diperbarui {lastSyncedAt}</div>
+          <div className="mt-0.5 text-xs text-ink-3">Rekomendasi &amp; aksi otomatis · data terakhir diperbarui {lastSyncedAt}</div>
         </div>
         <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="week" onChange={setRange} />

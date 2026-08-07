@@ -13,7 +13,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   "Meta Ads & TikTok Ads otomatis terhubung",
   "Multi-bisnis",
-  "Full AI Insight — anomali, rekomendasi & positif",
+  "Full AI Insight — perlu aksi, rekomendasi & positif",
   "Export laporan & copy as report",
 ];
 
