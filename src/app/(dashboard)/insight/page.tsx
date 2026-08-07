@@ -35,7 +35,7 @@ export default function InsightPage() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const showToast = useUiStore((s) => s.showToast);
   const { lastSyncedAt } = useSyncStore();
-  const { isFree } = useProGate(activeBusinessId);
+  const { isFree } = useProGate();
   const [range, setRange] = useState<FilterValue>(initialFilterValue("week"));
   const rangeKey = range.preset === "custom" ? `custom:${range.from}:${range.to}` : range.preset;
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
@@ -103,8 +103,8 @@ export default function InsightPage() {
             label="Sync & Analisis Ulang"
             onSynced={handleInsightSync}
           />
-          <CopyAsReportButton businessId={activeBusinessId} />
-          <ExportPdfButton fileName="ai-insight" businessId={activeBusinessId} />
+          <CopyAsReportButton />
+          <ExportPdfButton fileName="ai-insight" />
         </div>
       </div>
 

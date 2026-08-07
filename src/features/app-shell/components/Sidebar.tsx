@@ -146,7 +146,7 @@ function DetailPlatformNavItem({
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const detailPlatformView = useUiStore((s) => s.detailPlatformView);
   const setDetailPlatformView = useUiStore((s) => s.setDetailPlatformView);
-  const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
+  const { isFree, isPlatformLocked } = useProGate();
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const [pendingUpgrade, setPendingUpgrade] = useState<DetailPlatformView | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

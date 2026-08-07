@@ -2,11 +2,9 @@
 
 import { PlatformConnectionList } from "@/features/binding/components/PlatformConnectionList";
 import { useProGate } from "@/components/shared/use-pro-gate";
-import { useUiStore } from "@/stores/ui";
 
 export default function BindingPage() {
-  const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
-  const { isFree } = useProGate(activeBusinessId);
+  const { isFree } = useProGate();
 
   return (
     <div>

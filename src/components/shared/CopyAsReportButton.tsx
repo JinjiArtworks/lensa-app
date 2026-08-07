@@ -12,14 +12,12 @@ import { captureMainContent } from "@/lib/page-capture";
 export function CopyAsReportButton({
   label = "Copy as report",
   disabled = false,
-  businessId,
 }: {
   label?: string;
   disabled?: boolean;
-  businessId?: string;
 }) {
   const showToast = useUiStore((s) => s.showToast);
-  const { isFree } = useProGate(businessId);
+  const { isFree } = useProGate();
   const [copying, setCopying] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 

@@ -13,15 +13,13 @@ export function ExportPdfButton({
   fileName = "report",
   label = "Export as PDF",
   disabled = false,
-  businessId,
 }: {
   fileName?: string;
   label?: string;
   disabled?: boolean;
-  businessId?: string;
 }) {
   const showToast = useUiStore((s) => s.showToast);
-  const { isFree } = useProGate(businessId);
+  const { isFree } = useProGate();
   const [exporting, setExporting] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 

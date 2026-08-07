@@ -22,7 +22,7 @@ const PLATFORM_KEYS = Object.keys(PLATFORM_LABELS) as PlatformKey[];
 export function PlatformConnectionList() {
   const activeBusinessId = useUiStore((s) => s.activeBusinessId) ?? undefined;
   const showToast = useUiStore((s) => s.showToast);
-  const { isFree, isPlatformLocked } = useProGate(activeBusinessId);
+  const { isFree, isPlatformLocked } = useProGate();
   const { data: connectedPlatforms = [] } = useConnectedPlatforms(activeBusinessId);
   const connectPlatform = useConnectPlatform(activeBusinessId);
   const [connecting, setConnecting] = useState<PlatformKey | null>(null);

@@ -86,8 +86,8 @@ export default function DetailPlatformPage() {
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2.5">
                 <h2 className="text-[17px] font-bold">{activePlatform.name}</h2>
                 <div className="flex flex-wrap items-center gap-2" data-report-hide>
-                  <CopyAsReportButton businessId={activeBusinessId} />
-                  <ExportPdfButton fileName={`detail-platform-${platform}`} businessId={activeBusinessId} />
+                  <CopyAsReportButton />
+                  <ExportPdfButton fileName={`detail-platform-${platform}`} />
                 </div>
               </div>
               <PlatformKpiGrid entries={kpiEntries} />

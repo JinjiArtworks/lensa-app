@@ -48,8 +48,8 @@ export default function OverviewPage() {
         <div className="flex flex-wrap items-center gap-2" data-report-hide>
           <FilterBar defaultPreset="year" onChange={setRange} />
           <SyncButton queryKey={["platform-metrics", activeBusinessId, rangeKey]} />
-          <CopyAsReportButton disabled={!data} businessId={activeBusinessId} />
-          <ExportPdfButton fileName="overview" disabled={!data} businessId={activeBusinessId} />
+          <CopyAsReportButton disabled={!data} />
+          <ExportPdfButton fileName="overview" disabled={!data} />
         </div>
       </div>
       <CoverageBanner />
