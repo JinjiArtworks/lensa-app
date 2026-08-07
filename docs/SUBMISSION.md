@@ -93,15 +93,16 @@ Bagian ini paling banyak iterasi product-thinking, urutannya:
 ### 3.4 Landing page publik — konsep yang nggak ada di referensi
 
 - BDD.ai Client Service adalah tool internal/authenticated — nggak butuh halaman publik buat akuisisi user baru.
-- Lensa, sebagai produk self-serve SaaS, butuh itu: landing page (`/`) dengan hero, problem section, how-it-works, fitur, FAQ, testimoni, dan pricing (toggle Bulanan/Tahunan) buat calon pengguna yang belum tau produknya sama sekali.
+- Lensa, sebagai produk self-serve SaaS, butuh itu: landing page (`/`) publik buat calon pengguna yang belum tau produknya sama sekali.
 - Ini langsung nyambung ke alasan teknis "kenapa Next.js bukan Vite" di §4 (kebutuhan SSR/SEO yang nggak akan ada kalau Lensa dirancang kayak BDD.ai/internal-only).
-- **Proses desain:** diiterasi dulu di Claude Artifact (draft HTML/CSS/JS interaktif) sebelum di-porting ke Next.js — beberapa ronde revisi:
+- **Susunan section saat ini (`src/app/page.tsx`):** Nav → Hero → Problem section → How it Works → Fitur (grid) → AI Insight spotlight → Trend chart multi-metrik → Pricing (toggle Bulanan/Tahunan) → CTA penutup → Footer.
+- **Proses desain:** diiterasi dulu di Claude Artifact (draft HTML/CSS/JS interaktif) sebelum di-porting ke Next.js — beberapa ronde revisi di iterasi awal itu:
   - Copy diubah jadi "professional tapi santai".
   - Chart KPI diperluas dari CPA-only jadi multi-metrik (ROAS/CPA/CTR/Closing).
-  - FAQ dipindah ke tengah alur halaman (bukan disembunyikan di footer).
   - Pricing dapet toggle Bulanan/Tahunan.
+- **Koreksi — FAQ, Testimoni, dan Stats section (count-up) sempat dibangun di iterasi awal itu, tapi sudah dihapus total** di polish pass berikutnya (`66e6528`, 2026-08-04, pesan commit: "Remove FAQ and testimonials sections and now-unused mock data/types" — Stats section ikut dihapus di commit yang sama walau nggak disebut eksplisit di judulnya) — simplifikasi konten halaman, bukan gap yang belum dikerjain. **Catatan proses:** perubahan ini nggak pernah masuk entry `PROGRESS.md` waktu itu, jadi Route Map lama & draf awal dokumen ini sempat ikut stale ngikutin — sudah dikoreksi di sini dan di `PROGRESS.md`.
 
-*Sumber: `PROGRESS.md` sesi kesembilan (landing redesign) & sesi kedelapan (audit awal).*
+*Sumber: kode `src/app/page.tsx` + `src/features/landing/components/` (dicek ulang 2026-08-07), `git log` commit `66e6528`; narasi proses desain awal dari `PROGRESS.md` sesi kesembilan (landing redesign) & sesi kedelapan (audit awal).*
 
 ### 3.5 Copy as Report & Export — dari kartu kurasi jadi screenshot halaman asli
 

@@ -10,7 +10,7 @@ Urutan eksekusi: **Phase 0** (Foundation) → **Phase 1** (Core Dashboard — 4 
 
 **Status per 2026-08-06:** Phase 0-3 selesai secara fungsional (auth+Firestore beneran, semua data dashboard scoped per bisnis, AI Insight lengkap + baru dirombak total visual+bahasa+gating sesi ini, Billing UI+simulasi lengkap). Review checklist per fitur (`feature-specs.md`) dan responsive check menyeluruh **sudah selesai** (lihat entry sesi keempatbelas). **Deployment Vercel dikonfirmasi live & current** — dicek lewat GitHub commit status API (`gh api repos/.../commits/<sha>/status`), Vercel auto-deploy dari `main` **sukses buat semua commit malam ini** (termasuk `68c25bd` yang paling akhir), jadi `https://lensa-app-eight.vercel.app` udah pasti nampilin kerjaan terkini tanpa perlu redeploy manual. Firebase Authorized Domains juga bisa dianggap beres — retest sign-up/login di domain Vercel itu sukses sesi 14 (kalau domain belum authorized, login bakal gagal total, bukan "sebagian jalan"). **Phase 4 SELESAI SEMUA** — draft write-up assessment (`docs/SUBMISSION.md`) udah ditulis, nyusun 6 poin yang diminta (produk/referensi, pendekatan, user flow & rationale, keputusan teknis, deployment, penggunaan AI), disintesis dari `business-plan.md`+`decisions-log.md`+`PROGRESS.md`. **User perlu review isinya sebelum submit beneran** — belum ada konfirmasi baca ulang dari user.
 
-**Last updated:** 2026-08-07 (sesi kelimabelas — `docs/SUBMISSION.md` dirombak formatnya jadi poin-poin/bullet list per section; lalu ketauan 2 sisa copy "anomali" yang kelewatan dari rename ke "Perlu Aksi" — subtitle header `/insight` & 1 baris fitur Pro di `/billing` — dibenerin)
+**Last updated:** 2026-08-07 (sesi kelimabelas — `docs/SUBMISSION.md` dirombak formatnya jadi poin-poin/bullet list per section; ketauan & dibenerin 2 sisa copy "anomali" yang kelewatan dari rename ke "Perlu Aksi"; lalu user nge-flag §3.4 landing page di submission doc masih nyebut FAQ padahal udah dihapus dari kode — dicek ulang, ternyata FAQ+Testimoni+Stats section dihapus commit `66e6528` (2026-08-04) yang nggak pernah kecatet di sini, jadi Route Map & `SUBMISSION.md` §3.4 dikoreksi ke susunan section landing page yang aktual)
 
 ## ⚠️ Kalau resume di sesi baru, mulai dari sini
 
@@ -438,7 +438,7 @@ Semua plan Phase 0/1 ada di `plans/plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `su
 
 | Route | Halaman | Status |
 |---|---|---|
-| `/` | **Landing page publik** (redesign sesi kesembilan) | ✅ Nav, Hero (mockup interaktif Meta/TikTok), Problem, How it Works, Fitur, FAQ (tengah halaman), AI Insight spotlight, Stats, Trend chart multi-KPI (`recharts`), Testimoni, Pricing (toggle Bulanan/Tahunan) + comparison table, CTA, footer — "Pilih Pro" buka mock checkout modal |
+| `/` | **Landing page publik** (redesign sesi kesembilan, polish 2026-08-04 commit `66e6528` — lihat koreksi di bawah tabel) | ✅ Nav, Hero (mockup interaktif Meta/TikTok), Problem, How it Works, Fitur, AI Insight spotlight, Trend chart multi-KPI (`recharts`), Pricing (toggle Bulanan/Tahunan) + comparison table, CTA, footer — "Pilih Pro" buka mock checkout modal. **FAQ/Testimoni/Stats section TIDAK ada lagi** (dihapus, lihat catatan di bawah) |
 | `/sign-in` | Sign In (dipindah dari `/`) | ✅ Firebase Auth beneran, redirect ke `/onboarding` (belum punya bisnis) atau `/overview` (udah punya) |
 | `/sign-up` | Sign Up (baru, sesi ketigabelas) | ✅ Firebase Auth beneran, sama logic redirect kayak `/sign-in` |
 | `/onboarding` | Onboarding — **business setup**, BUKAN platform connect lagi sejak split sesi keempatbelas | ✅ Empty state (0 bisnis) → buat bisnis baru (nama+kategori) → auto-redirect `/overview`. ≥1 bisnis → pilih dari list. Platform connect sepenuhnya pindah ke `/binding` |
@@ -449,6 +449,8 @@ Semua plan Phase 0/1 ada di `plans/plan-YYYY-MM-DD-<nama>.md`, ditulis pakai `su
 | `/binding` | Binding (platform connect, dulu `/connect-platform` — di-rename + Onboarding/Binding split, lihat entry sesi ini) | ✅ Real `connectedPlatforms` Firestore, confirm dialog sebelum simulasi bind, lock+upgrade kalau Free udah kena limit |
 | `/ketentuan-layanan` | Ketentuan Layanan (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
 | `/kebijakan-privasi` | Kebijakan Privasi (baru, sesi keduabelas) | ✅ Isi placeholder generik, belum direview legal/lawyer |
+
+> **Koreksi (2026-08-07):** baris `/` di atas sebelumnya masih nyebut FAQ/Stats/Testimoni sebagai section yang ada — itu udah stale. Ketiganya dihapus total di commit `66e6528` (2026-08-04, "Polish landing page: rework How It Works, drop FAQ/testimonials, tweak backgrounds") sebagai simplifikasi konten, tapi perubahan itu nggak pernah dicatat entry-nya di sini waktu itu — jadi baris tabel ini (dan turunannya di `docs/SUBMISSION.md` §3.4) sempat salah selama beberapa sesi sampai ketauan user pas review submission write-up. Susunan section `/` yang bener sekarang: Nav → Hero → Problem → How it Works → Fitur → AI Insight spotlight → Trend chart → Pricing → CTA → Footer.
 
 ## Yang Sengaja Belum Dikerjain (bukan kelupaan — dicatat di tiap plan file masing-masing)
 
